@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -38,11 +39,11 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kt.fluxo.core.Bootstrapper
+import kt.fluxo.core.FluxoClosedException
 import kt.fluxo.core.FluxoSettings
 import kt.fluxo.core.IntentHandler
 import kt.fluxo.core.SideEffectsStrategy
 import kt.fluxo.core.Store
-import kt.fluxo.core.StoreClosedException
 import kt.fluxo.core.annotation.InternalFluxoApi
 import kt.fluxo.core.data.GuaranteedEffect
 import kt.fluxo.core.debug.DEBUG
@@ -110,6 +111,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     private val interceptors = conf.interceptors.toTypedArray()
     private val bootstrapper = conf.bootstrapper
     private val intentFilter = conf.intentFilter
+    private val coroutineStart = if (conf.offloadAllToScope) CoroutineStart.DEFAULT else CoroutineStart.UNDISPATCHED
 
     @OptIn(InternalCoroutinesApi::class)
     private val cancellationCause get() = scope.coroutineContext[Job]?.getCancellationException()
@@ -272,6 +274,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                     !debugChecks -> EmptyCoroutineContext
                     else -> CoroutineName("$F[$name:lazyStart]")
                 },
+                start = coroutineStart,
             ) {
                 // start on the first subscriber.
                 subscriptions.first { it > 0 }
@@ -285,7 +288,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
 
     override fun start(): Job? {
         if (!isActive) {
-            throw StoreClosedException(
+            throw FluxoClosedException(
                 "Store is closed, it cannot be restarted",
                 cancellationCause?.let { it.cause ?: it },
             )
@@ -413,6 +416,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             !debugChecks -> EmptyCoroutineContext
             else -> CoroutineName("$F[$name:launch]")
         },
+        start = coroutineStart,
     ) {
         // observe and process intents
         val requestsFlow = requestsChannel.receiveAsFlow()
@@ -432,7 +436,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 is StoreRequest.RestoreState -> updateState(request)
             }
         }
-        scope.launch(intentContext, start = CoroutineStart.UNDISPATCHED) {
+        scope.launch(intentContext, start = coroutineStart) {
             with(inputStrategy) {
                 inputStrategyScope.processRequests(requestsFlow)
             }
@@ -553,9 +557,10 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             request = request,
             job = sideJobScope.launch(
                 context = when {
-                    !debugChecks -> EmptyCoroutineContext
-                    else -> CoroutineName("$F[$name SideJob $key <= Intent ${request.parent}]")
+                    !debugChecks -> request.context
+                    else -> CoroutineName("$F[$name SideJob $key <= Intent ${request.parent}]") + request.context
                 },
+                start = request.start,
             ) {
                 try {
                     val sideJobScope = SideJobScopeImpl(
@@ -641,9 +646,9 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         sideJobsMap.clear()
 
         // Close and clear state & side effects machinery.
-        @OptIn(ExperimentalCoroutinesApi::class)
         // FIXME: Test case when interceptorScope is already closed here
-        interceptorScope.launch(Dispatchers.Unconfined + Job(), CoroutineStart.UNDISPATCHED) {
+        @OptIn(ExperimentalCoroutinesApi::class)
+        interceptorScope.launch(Dispatchers.Unconfined + Job(), start = CoroutineStart.UNDISPATCHED) {
             mutableState.value.closeSafely(ceCause)
             (sideEffectFlowField as? MutableSharedFlow)?.apply {
                 val replayCache = replayCache
@@ -665,6 +670,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // Cancel it with a delay.
         val interceptorScope = interceptorScope
         if (interceptorScope !== scope && interceptorScope.isActive) {
+            @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
             interceptorScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 val events = events
                 val noSubscriptions = events.subscriptionCount.filter { it <= 0 }.produceIn(this)

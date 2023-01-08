@@ -18,9 +18,8 @@ setupBinaryCompatibilityValidator()
 
 kotlin {
     setupSourceSets {
-        all {
+        matching { "Test" in it.name }.configureEach {
             languageSettings {
-                optIn("kotlin.contracts.ExperimentalContracts")
                 optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
             }
         }

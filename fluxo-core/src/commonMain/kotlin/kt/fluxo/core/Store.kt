@@ -9,10 +9,15 @@ import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.internal.Closeable
 import kotlin.js.JsName
 
+
+public typealias StoreS<Intent, State> = Store<Intent, State, Nothing>
+
 /**
  * Convenience typealias for an MVVM+ Fluxo [Store] setup.
  */
 public typealias Container<State, SideEffect> = Store<FluxoIntent<State, SideEffect>, State, SideEffect>
+public typealias ContainerS<State> = Container<State, Nothing>
+
 
 @ThreadSafe
 public interface Store<Intent, State, SideEffect : Any> : Closeable {
@@ -58,14 +63,14 @@ public interface Store<Intent, State, SideEffect : Any> : Closeable {
 
     /**
      *
-     * @throws StoreClosedException
+     * @throws FluxoClosedException
      */
     @JsName("send")
     public fun send(intent: Intent)
 
     /**
      *
-     * @throws StoreClosedException
+     * @throws FluxoClosedException
      */
     @JsName("sendAsync")
     public suspend fun sendAsync(intent: Intent): Job
@@ -74,7 +79,7 @@ public interface Store<Intent, State, SideEffect : Any> : Closeable {
     /**
      * Starts [Store] processing if not started already.
      *
-     * @throws StoreClosedException
+     * @throws FluxoClosedException
      */
     @JsName("start")
     public fun start(): Job?

@@ -1,3 +1,5 @@
+@file:JvmName("FluxoDsl")
+
 package kt.fluxo.core
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,6 +13,8 @@ import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kt.fluxo.core.annotation.FluxoDsl
 import kt.fluxo.core.dsl.StoreScope
 import kt.fluxo.core.internal.FluxoStore
+import kotlin.js.JsName
+import kotlin.jvm.JvmName
 
 
 // Convenience DSL for Fluxo usage (non-inline)
@@ -22,6 +26,8 @@ import kt.fluxo.core.internal.FluxoStore
  * NOTE: Works only for the standart implementation of Fluxo [Store] ([FluxoStore]).
  */
 @ExperimentalFluxoApi
+@JsName("closeStoreAndWait")
+@JvmName("closeStoreAndWait")
 public suspend fun Store<*, *, *>.closeAndWait() {
     close()
     val store = this as FluxoStore
@@ -34,6 +40,8 @@ public suspend fun Store<*, *, *>.closeAndWait() {
  * @see StoreScope.sideJob
  */
 @FluxoDsl
+@JsName("repeatOnSubscriptionIn")
+@JvmName("repeatOnSubscriptionIn")
 @OptIn(ExperimentalCoroutinesApi::class)
 public suspend fun <I, S, SE : Any> StoreScope<I, S, SE>.repeatOnSubscription(
     key: String = StoreScope.DEFAULT_REPEAT_ON_SUBSCRIPTION_JOB,

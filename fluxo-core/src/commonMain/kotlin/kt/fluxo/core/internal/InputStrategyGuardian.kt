@@ -1,8 +1,8 @@
 package kt.fluxo.core.internal
 
 import kotlinx.atomicfu.atomic
+import kt.fluxo.core.FluxoRuntimeException
 import kt.fluxo.core.Store
-import kt.fluxo.core.StoreRuntimeException
 import kt.fluxo.core.annotation.InternalFluxoApi
 import kt.fluxo.core.debug.debugClassName
 import kotlin.contracts.contract
@@ -118,7 +118,7 @@ internal open class InputStrategyGuardian(
             returns() implies value
         }
         if (!value) {
-            throw StoreRuntimeException(lazyMessage(), cause = null)
+            throw FluxoRuntimeException(lazyMessage(), cause = null)
         }
     }
 }

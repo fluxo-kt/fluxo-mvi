@@ -5,6 +5,7 @@ package kt.fluxo.core
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,6 +22,10 @@ import kotlin.js.JsName
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 import kotlin.native.ObjCName
+
+
+public typealias FluxoSettingsS<Intent, State> = FluxoSettings<Intent, State, Nothing>
+
 
 /**
  * Settings for the Fluxo store.
@@ -77,20 +82,28 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
 
     /** [bootstrapper] convenience method */
     @InlineOnly
+    @JsName("onStart")
     public inline fun onStart(noinline bootstrapper: Bootstrapper<in Intent, State, SideEffect>) {
         this.bootstrapper = bootstrapper
     }
 
     /** [bootstrapper] convenience method */
     @InlineOnly
+    @JsName("onCreate")
     @Deprecated("Use onStart instead", ReplaceWith("onStart(bootstrapper)"))
     public inline fun onCreate(noinline bootstrapper: Bootstrapper<in Intent, State, SideEffect>) {
         onStart(bootstrapper)
     }
 
     /** [bootstrapper] convenience method when you need only a [sideJob][kt.fluxo.core.dsl.StoreScope.sideJob] */
-    public fun bootstrapperJob(key: String = BOOTSTRAPPER_SIDE_JOB, block: SideJob<Intent, State, SideEffect>) {
-        this.bootstrapper = { sideJob(key, block) }
+    @JsName("bootstrapperJob")
+    public fun bootstrapperJob(
+        key: String = BOOTSTRAPPER_SIDE_JOB,
+        context: CoroutineContext = EmptyCoroutineContext,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: SideJob<Intent, State, SideEffect>,
+    ) {
+        this.bootstrapper = { sideJob(key, context, start, block) }
     }
 
 
@@ -104,12 +117,14 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
 
     /** [interceptors] convenience method */
     @InlineOnly
+    @JsName("interceptor")
     public inline fun interceptor(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
         interceptors.add(FluxoInterceptor(onEvent))
     }
 
     /** [interceptors] convenience method */
     @InlineOnly
+    @JsName("onEvent")
     public inline fun onEvent(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
         interceptor(onEvent)
     }
@@ -154,12 +169,18 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     public var scope: CoroutineScope? = null
 
     /**
-     *  [CoroutineDispatcher] or any [CoroutineContext] to run the [Store] event loop.
+     * [CoroutineDispatcher] or any [CoroutineContext] to run the [Store] event loop.
      */
     public var eventLoopContext: CoroutineContext = Dispatchers.Default
     public var intentContext: CoroutineContext = EmptyCoroutineContext
     public var sideJobsContext: CoroutineContext = EmptyCoroutineContext
     public var interceptorContext: CoroutineContext = EmptyCoroutineContext
+
+    /**
+     * If true the [Store] will offload everything possible to the provided [scope] and contexts, not trying to optimize performance.
+     */
+    @get:JvmName("isOffloadAllToScope")
+    public var offloadAllToScope: Boolean = false
 
     /**
      * [CoroutineExceptionHandler] to receive exception happened in processing.
@@ -176,12 +197,14 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
 
     /** [exceptionHandler] convenience method */
     @InlineOnly
+    @JsName("setExceptionHandler")
     public inline fun exceptionHandler(crossinline handler: (CoroutineContext, Throwable) -> Unit) {
         exceptionHandler = CoroutineExceptionHandler(handler)
     }
 
     /** [exceptionHandler] convenience method */
     @InlineOnly
+    @JsName("onError")
     public inline fun onError(crossinline handler: CoroutineContext.(Throwable) -> Unit) {
         exceptionHandler = CoroutineExceptionHandler(handler)
     }

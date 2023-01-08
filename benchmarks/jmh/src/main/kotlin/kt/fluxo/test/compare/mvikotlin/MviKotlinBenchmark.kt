@@ -11,6 +11,9 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 internal object MviKotlinBenchmark {
+
+    // https://github.com/arkivanov/MVIKotlin/blob/57ade7a/sample/coroutines/shared/src/commonMain/kotlin/com/arkivanov/mvikotlin/sample/coroutines/shared/details/store/DetailsStoreFactory.kt
+
     fun mviReducer(): Int {
         // Override stderr to get rid of `[MVIKotlin]: Main thread ID is undefined, main thread assert is disabled`.
         val stderr = System.err

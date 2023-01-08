@@ -13,6 +13,7 @@ import kotlin.internal.InlineOnly
 import kotlin.internal.LowPriorityInOverloadResolution
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
+import kotlin.native.ObjCName
 
 
 // Convenience DSL for Fluxo usage (inline)
@@ -26,9 +27,9 @@ import kotlin.jvm.JvmName
 @InlineOnly
 public inline fun <State> CoroutineScope.container(
     initialState: State,
-    settings: FluxoSettings<FluxoIntent<State, Nothing>, State, Nothing> = fluxoSettings(),
-    @BuilderInference setup: FluxoSettings<FluxoIntent<State, Nothing>, State, Nothing>.() -> Unit = {},
-): Container<State, Nothing> {
+    settings: FluxoSettings<FluxoIntentS<State>, State, Nothing> = fluxoSettings(),
+    @BuilderInference setup: FluxoSettings<FluxoIntentS<State>, State, Nothing>.() -> Unit = {},
+): ContainerS<State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.container(initialState, settings, setup = {
         eventLoopContext = coroutineContext
@@ -43,6 +44,7 @@ public inline fun <State> CoroutineScope.container(
 @LowPriorityInOverloadResolution
 @JsName("scopedContainerWithSideEffects")
 @JvmName("containerWithSideEffects")
+@ObjCName("containerWithSideEffects")
 public inline fun <State, SideEffect : Any> CoroutineScope.container(
     initialState: State,
     settings: FluxoSettings<FluxoIntent<State, SideEffect>, State, SideEffect> = fluxoSettings(),
@@ -66,7 +68,7 @@ public inline fun <Intent, State> CoroutineScope.store(
     @BuilderInference noinline reducer: Reducer<Intent, State>,
     settings: FluxoSettings<Intent, State, Nothing> = fluxoSettings(),
     @BuilderInference setup: FluxoSettings<Intent, State, Nothing>.() -> Unit = {},
-): Store<Intent, State, Nothing> {
+): StoreS<Intent, State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return store(initialState, ReducerIntentHandler(reducer), settings, setup)
 }
@@ -82,7 +84,7 @@ public inline fun <Intent, State> CoroutineScope.store(
     @BuilderInference handler: IntentHandler<Intent, State, Nothing>,
     settings: FluxoSettings<Intent, State, Nothing> = fluxoSettings(),
     @BuilderInference setup: FluxoSettings<Intent, State, Nothing>.() -> Unit = {},
-): Store<Intent, State, Nothing> {
+): StoreS<Intent, State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.store(initialState, handler, settings, setup = {
         eventLoopContext = coroutineContext
@@ -98,6 +100,7 @@ public inline fun <Intent, State> CoroutineScope.store(
 @InlineOnly
 @JsName("scopedStoreWithSideEffects")
 @JvmName("storeWithSideEffects")
+@ObjCName("storeWithSideEffects")
 public inline fun <Intent, State, SideEffect : Any> CoroutineScope.store(
     initialState: State,
     @BuilderInference handler: IntentHandler<Intent, State, SideEffect>,
@@ -122,9 +125,9 @@ public inline fun <Intent, State, SideEffect : Any> CoroutineScope.store(
 @InlineOnly
 public inline fun <State> container(
     initialState: State,
-    settings: FluxoSettings<FluxoIntent<State, Nothing>, State, Nothing> = fluxoSettings(),
-    @BuilderInference setup: FluxoSettings<FluxoIntent<State, Nothing>, State, Nothing>.() -> Unit = {},
-): Container<State, Nothing> {
+    settings: FluxoSettings<FluxoIntentS<State>, State, Nothing> = fluxoSettings(),
+    @BuilderInference setup: FluxoSettings<FluxoIntentS<State>, State, Nothing>.() -> Unit = {},
+): ContainerS<State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return container<State, Nothing>(initialState, settings) {
         sideEffectsStrategy = SideEffectsStrategy.DISABLE
@@ -139,6 +142,7 @@ public inline fun <State> container(
 @LowPriorityInOverloadResolution
 @JsName("containerWithSideEffects")
 @JvmName("containerWithSideEffects")
+@ObjCName("containerWithSideEffects")
 public inline fun <State, SideEffect : Any> container(
     initialState: State,
     settings: FluxoSettings<FluxoIntent<State, SideEffect>, State, SideEffect> = fluxoSettings(),
@@ -164,7 +168,7 @@ public inline fun <Intent, State> store(
     @BuilderInference noinline reducer: Reducer<Intent, State>,
     settings: FluxoSettings<Intent, State, Nothing> = fluxoSettings(),
     @BuilderInference setup: FluxoSettings<Intent, State, Nothing>.() -> Unit = {},
-): Store<Intent, State, Nothing> {
+): StoreS<Intent, State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return store(initialState, ReducerIntentHandler(reducer), settings, setup)
 }
@@ -180,7 +184,7 @@ public inline fun <Intent, State> store(
     @BuilderInference handler: IntentHandler<Intent, State, Nothing>,
     settings: FluxoSettings<Intent, State, Nothing> = fluxoSettings(),
     @BuilderInference setup: FluxoSettings<Intent, State, Nothing>.() -> Unit = {},
-): Store<Intent, State, Nothing> {
+): StoreS<Intent, State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return store<Intent, State, Nothing>(initialState, handler, settings) {
         sideEffectsStrategy = SideEffectsStrategy.DISABLE
@@ -196,6 +200,7 @@ public inline fun <Intent, State> store(
 @InlineOnly
 @JsName("storeWithSideEffects")
 @JvmName("storeWithSideEffects")
+@ObjCName("storeWithSideEffects")
 public inline fun <Intent, State, SideEffect : Any> store(
     initialState: State,
     @BuilderInference handler: IntentHandler<Intent, State, SideEffect>,

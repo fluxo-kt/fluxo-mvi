@@ -7,10 +7,12 @@ import kotlinx.coroutines.launch
 import kt.fluxo.core.dsl.InterceptorScope
 import kt.fluxo.core.intercept.FluxoEvent
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.js.JsName
 import kotlin.jvm.JvmName
 
 public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
 
+    @JsName("start")
     public fun InterceptorScope<Intent, State>.start(events: Flow<FluxoEvent<Intent, State, SideEffect>>) {
         val context = when (coroutineContext[CoroutineName]) {
             null -> EmptyCoroutineContext
@@ -21,14 +23,15 @@ public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
         }
     }
 
+    @JsName("onNotify")
     public suspend fun onNotify(event: FluxoEvent<Intent, State, SideEffect>) {}
 }
 
 /**
  * Convenience factory for creating [FluxoInterceptor] from a [function][onEvent].
  */
-@Suppress("FunctionName")
 @JvmName("create")
+@Suppress("FunctionName", "RedundantSuppression")
 public inline fun <I, S, SE : Any> FluxoInterceptor(
     crossinline onEvent: (event: FluxoEvent<I, S, SE>) -> Unit,
 ): FluxoInterceptor<I, S, SE> {

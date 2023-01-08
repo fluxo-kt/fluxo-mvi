@@ -3,6 +3,7 @@
 package kt.fluxo.core.dsl
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -10,7 +11,10 @@ import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.FluxoDsl
 import kt.fluxo.core.annotation.InternalFluxoApi
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
+import kotlin.js.JsName
 
 @FluxoDsl
 public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineScope {
@@ -41,11 +45,25 @@ public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineSc
      *
      * @see MutableStateFlow.update
      */
+    @JsName("updateState")
     public suspend fun updateState(function: (State) -> State): State
 
+    @JsName("postSideEffect")
     public suspend fun postSideEffect(sideEffect: SideEffect)
 
-    public suspend fun sideJob(key: String = DEFAULT_SIDE_JOB, block: suspend SideJobScope<Intent, State, SideEffect>.() -> Unit)
+    // TODO: Return some kind of DisposableHandle/Job?
+    //  see https://github.com/1gravity/Kotlin-Bloc/releases/tag/v0.9.3
+    /**
+     *
+     * @see kotlinx.coroutines.launch
+     */
+    @JsName("sideJob")
+    public suspend fun sideJob(
+        key: String = DEFAULT_SIDE_JOB,
+        context: CoroutineContext = EmptyCoroutineContext,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        block: SideJob<Intent, State, SideEffect>,
+    )
 
     public fun noOp()
 
@@ -53,6 +71,7 @@ public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineSc
     // region Convenience helpers
 
     @InlineOnly
+    @JsName("launch")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",
         replaceWith = ReplaceWith("sideJob(key, block)"),
@@ -61,6 +80,7 @@ public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineSc
     public fun launch(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, State, SideEffect>): Unit = throw NotImplementedError()
 
     @InlineOnly
+    @JsName("async")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",
         replaceWith = ReplaceWith("sideJob(key, block)"),
@@ -78,6 +98,7 @@ public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineSc
      * Consider to use [updateState] instead.
      */
     @InlineOnly
+    @JsName("reduce")
     @Deprecated(
         message = "Please use the updateState instead",
         level = DeprecationLevel.WARNING,

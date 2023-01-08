@@ -15,6 +15,7 @@ import fluxo.setupVerification
 import fluxo.signingKey
 import fluxo.tvosCompat
 import fluxo.useK2
+import fluxo.useKotlinDebug
 import fluxo.watchosCompat
 import java.net.URL
 
@@ -67,11 +68,19 @@ setupDefaults(
         tvosCompat()
         macosCompat()
 
+        // Duplicate opt-ins here as IDEA don't catch settings from compile tasks.
+        sourceSets.all {
+            languageSettings {
+                optIn("kotlin.contracts.ExperimentalContracts")
+                optIn("kotlin.experimental.ExperimentalObjCName")
+            }
+        }
+
+        // Configure a separate test where code runs in worker thread
+        // https://kotlinlang.org/docs/compiler-reference.html#generate-worker-test-runner-trw
         targets.withType<org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests<*>>().all {
             binaries {
-                // Configure a separate test where code runs in background
                 test("background", listOf(DEBUG)) {
-                    // https://kotlinlang.org/docs/compiler-reference.html#generate-worker-test-runner-trw
                     freeCompilerArgs += "-trw"
                 }
             }
@@ -297,48 +306,59 @@ allprojects {
         val isCi by isCI()
         val isRelease by isRelease()
         val enableK2 by useK2()
-        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        val useKotlinDebug by useKotlinDebug()
+        tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
             val isTestTask = "Test" in name
             val isDebugTask = "Debug" in name
+            val isReleaseTask = "Release" in name
+            val releaseSettings = isCi || isRelease || isReleaseTask
             compilerOptions {
                 if (!isTestTask && (isCi || isRelease)) {
                     allWarningsAsErrors.set(true)
                 }
-
-                jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(libs.versions.javaLangTarget.get()))
-                javaParameters.set(!isDebugTask)
 
                 org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlinLangVersion.get()).let {
                     languageVersion.set(it)
                     apiVersion.set(it)
                 }
 
+                if (this is org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions) {
+                    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(libs.versions.javaLangTarget.get()))
+                    javaParameters.set(!isDebugTask)
+
+                    // https://github.com/JetBrains/kotlin/blob/master/compiler/testData/cli/jvm/extraHelp.out
+                    freeCompilerArgs.addAll(
+                        "-Xjsr305=strict",
+                        "-Xjvm-default=all",
+                        "-Xtype-enhancement-improvements-strict-mode",
+                        "-Xuse-fast-jar-file-system",
+                        "-Xvalidate-bytecode",
+                        "-Xvalidate-ir",
+                    )
+
+                    // more data on MVVM+ lambda intents for debugging
+                    // class mode provides arguments names
+                    freeCompilerArgs.addAll((if (releaseSettings) "indy" else "class").let {
+                        listOf("-Xlambdas=$it", "-Xsam-conversions=$it")
+                    })
+                }
+
                 // https://github.com/JetBrains/kotlin/blob/master/compiler/testData/cli/jvm/extraHelp.out
+                // https://github.com/JetBrains/kotlin/blob/master/compiler/testData/cli/js/jsExtraHelp.out
                 freeCompilerArgs.addAll(
                     "-Xcontext-receivers",
-                    "-Xjsr305=strict",
-                    "-Xjvm-default=all",
-                    "-Xtype-enhancement-improvements-strict-mode",
-                    "-Xvalidate-bytecode",
-                    "-Xvalidate-ir",
+                    "-Xklib-enable-signature-clash-checks",
                     "-opt-in=kotlin.RequiresOptIn",
+                    "-opt-in=kotlin.contracts.ExperimentalContracts",
+                    "-opt-in=kotlin.experimental.ExperimentalObjCName",
                     // w: '-progressive' is meaningful only for the latest language version (1.8)
                     //"-progressive",
                 )
 
-                // more data on MVVM+ lambda intents for debugging
-                // indy mode provides arguments names
-                freeCompilerArgs.addAll(when {
-                    isCi || isRelease -> listOf(
-                        "-Xlambdas=indy",
-                        "-Xsam-conversions=indy",
-                    )
-
-                    else -> listOf(
-                        "-Xlambdas=class",
-                        "-Xsam-conversions=class",
-                    )
-                })
+                // https://kotlinlang.org/docs/whatsnew18.html#a-new-compiler-option-for-disabling-optimizations
+                if (!releaseSettings && useKotlinDebug) {
+                    freeCompilerArgs.add("-Xdebug")
+                }
 
                 if (enableK2) {
                     useK2.set(true)

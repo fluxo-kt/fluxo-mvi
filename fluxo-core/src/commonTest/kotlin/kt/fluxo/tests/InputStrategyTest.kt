@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kt.fluxo.core.FluxoRuntimeException
 import kt.fluxo.core.InputStrategy
 import kt.fluxo.core.InputStrategy.InBox.Fifo
 import kt.fluxo.core.InputStrategy.InBox.Lifo
 import kt.fluxo.core.InputStrategy.InBox.Parallel
-import kt.fluxo.core.StoreRuntimeException
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
 import kt.fluxo.core.dsl.InputStrategyScope
@@ -153,14 +153,14 @@ internal class InputStrategyTest : CoroutineScopeAwareTest() {
         val intent: suspend StoreScope<*, Int, *>.() -> Unit = intent@{
             assertEquals(0, state)
             // Parallel input strategy requires that inputs only access or update the state at most once.
-            assertFailsWith<StoreRuntimeException> { state }
+            assertFailsWith<FluxoRuntimeException> { state }
             sideJob(key = "${Random.nextLong()}") {
                 // intent scope has already been closed.
-                assertFailsWith<StoreRuntimeException> { this@intent.noOp() }
+                assertFailsWith<FluxoRuntimeException> { this@intent.noOp() }
                 updateState { it + 1 }
             }
             // sideJob already declared
-            assertFailsWith<StoreRuntimeException> { noOp() }
+            assertFailsWith<FluxoRuntimeException> { noOp() }
         }
         val container = backgroundScope.container(0) {
             inputStrategy = Parallel

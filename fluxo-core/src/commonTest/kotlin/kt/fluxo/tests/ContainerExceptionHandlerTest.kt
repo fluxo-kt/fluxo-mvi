@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import kt.fluxo.core.StoreClosedException
+import kt.fluxo.core.FluxoClosedException
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
 import kt.fluxo.test.getValue
@@ -44,7 +44,7 @@ class ContainerExceptionHandlerTest {
         }
         yield()
 
-        assertFailsWith<StoreClosedException> {
+        assertFailsWith<FluxoClosedException> {
             container.send {
                 updateState { 2 }
             }

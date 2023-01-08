@@ -57,7 +57,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
         // https://github.com/JetBrains/kotlin/blob/master/compiler/testData/cli/jvm/extraHelp.out
         freeCompilerArgs.addAll(
-            "-opt-in=kotlin.experimental.ExperimentalTypeInference",
             "-opt-in=kotlinx.coroutines.DelicateCoroutinesApi",
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
             "-opt-in=kt.fluxo.core.annotation.ExperimentalFluxoApi",

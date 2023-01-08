@@ -17,6 +17,7 @@ public abstract class InputStrategy {
      *
      * @param onUndeliveredElement See "Undelivered elements" section in [Channel] documentation for details.
      */
+    @JsName("createQueue")
     public open fun <Request> createQueue(onUndeliveredElement: ((Request) -> Unit)?): Channel<Request> {
         return Channel(
             capacity = Channel.UNLIMITED,
@@ -31,6 +32,7 @@ public abstract class InputStrategy {
 
     public open val resendUndelivered: Boolean get() = true
 
+    @JsName("processRequests")
     public abstract suspend fun <Request> InputStrategyScope<Request>.processRequests(queue: Flow<Request>)
 
 
