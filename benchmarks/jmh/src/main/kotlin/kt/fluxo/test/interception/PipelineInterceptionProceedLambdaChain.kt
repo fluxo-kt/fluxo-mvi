@@ -56,7 +56,8 @@ object PipelineInterceptionProceedLambdaChain : InterceptionBase() {
 
         val originalRequest = 0
         val chain = InterceptorChain(
-            originalRequest, interceptorsArray,
+            originalRequest,
+            interceptorsArray,
             { value, proceed -> intent(value, proceed) },
         ) { state.addAndGet(1) }
 

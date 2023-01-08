@@ -17,6 +17,7 @@ object DecoratorInterception : InterceptionBase() {
         suspend fun intent(value: I)
     }
 
+    @Suppress("UnnecessaryAbstractClass")
     private abstract class IntentHandlerDecorator<I>(protected val actual: IntentHandler<I>) : IntentHandler<I> {
         override suspend fun intent(value: I) = actual.intent(value)
     }
