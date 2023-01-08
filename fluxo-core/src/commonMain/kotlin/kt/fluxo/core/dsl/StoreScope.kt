@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.FluxoDsl
-import kt.fluxo.core.annotation.InternalFluxoApi
+import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
@@ -18,14 +18,6 @@ import kotlin.js.JsName
 
 @FluxoDsl
 public interface StoreScope<in Intent, State, in SideEffect : Any> : CoroutineScope {
-
-    @InternalFluxoApi
-    public companion object {
-        internal const val DEFAULT_SIDE_JOB = "default"
-        internal const val BOOTSTRAPPER_SIDE_JOB = "bootstrapper"
-        internal const val DEFAULT_REPEAT_ON_SUBSCRIPTION_JOB = "repeatOnSubscription"
-    }
-
 
     public val state: State
 

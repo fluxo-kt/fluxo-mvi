@@ -54,9 +54,7 @@ import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.intercept.StoreRequest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.coroutineContext
 
-@PublishedApi
 @InternalFluxoApi
 internal class FluxoStore<Intent, State, SideEffect : Any>(
     initialState: State,
@@ -75,7 +73,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     // TODO: Generate name from Store host with reflection in debug mode?
     override val name: String = conf.name ?: "store#${storeNumber.getAndIncrement()}"
 
-    private val scope: CoroutineScope
+    override val coroutineContext: CoroutineContext
 
     @InternalFluxoApi
     internal val intentContext: CoroutineContext
@@ -96,12 +94,9 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         get() = sideEffectFlowField ?: error("Side effects are disabled for the current store: $name")
 
     private val events = MutableSharedFlow<FluxoEvent<Intent, State, SideEffect>>(extraBufferCapacity = 256)
-    override val eventsFlow: Flow<FluxoEvent<Intent, State, SideEffect>> get() = events
+    val eventsFlow: Flow<FluxoEvent<Intent, State, SideEffect>> get() = events
 
-    private val subscriptionCount: StateFlow<Int>
-
-    override val isActive: Boolean
-        get() = scope.isActive
+    override val subscriptionCount: StateFlow<Int>
 
     private val initialised = atomic(false)
 
@@ -114,7 +109,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     private val coroutineStart = if (conf.offloadAllToScope) CoroutineStart.DEFAULT else CoroutineStart.UNDISPATCHED
 
     @OptIn(InternalCoroutinesApi::class)
-    private val cancellationCause get() = scope.coroutineContext[Job]?.getCancellationException()
+    private val cancellationCause get() = coroutineContext[Job]?.getCancellationException()
 
     init {
         val ctx = conf.eventLoopContext + (conf.scope?.coroutineContext ?: EmptyCoroutineContext) + when {
@@ -134,7 +129,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 try {
                     val ce = CancellationException("Uncaught exception: $e", e)
                     @Suppress("UNINITIALIZED_VARIABLE")
-                    scope.coroutineContext.cancel(ce)
+                    this@FluxoStore.coroutineContext.cancel(ce)
                     context.cancel(ce)
                 } catch (e2: Throwable) {
                     e2.addSuppressed(e)
@@ -142,7 +137,8 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 }
             }
         }
-        scope = CoroutineScope(ctx + exceptionHandler + job)
+        coroutineContext = ctx + exceptionHandler + job
+        val scope: CoroutineScope = this
 
         intentContext = scope.coroutineContext + conf.intentContext + when {
             !debugChecks -> EmptyCoroutineContext
@@ -299,10 +295,6 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         return null
     }
 
-    override fun close() {
-        scope.cancel()
-    }
-
     override suspend fun sendAsync(intent: Intent): Deferred<Unit> {
         start()
         val i = if (DEBUG && debugChecks) debugIntentWrapper(intent) else intent
@@ -315,7 +307,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     override fun send(intent: Intent) {
         start()
         val i = if (DEBUG && debugChecks) debugIntentWrapper(intent) else intent
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        launch(start = CoroutineStart.UNDISPATCHED) {
             @Suppress("DeferredResultUnused")
             sendAsync(i)
         }
@@ -353,7 +345,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 return nextValue
             }
             // TODO: we may need to close nextValue here
-            coroutineContext.ensureActive()
+            currentCoroutineContext().ensureActive()
         }
     }
 
@@ -375,19 +367,19 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             events.emit(FluxoEvent.SideEffectUndelivered(this@FluxoStore, sideEffect, resent = false))
             events.emit(FluxoEvent.UnhandledError(this@FluxoStore, e))
             sideEffect.closeSafely(e)
-            handleException(e, coroutineContext)
+            handleException(e, currentCoroutineContext())
         }
     }
 
     private fun postSideEffectSync(sideEffect: SideEffect) {
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        launch(start = CoroutineStart.UNDISPATCHED) {
             postSideEffect(sideEffect)
         }
     }
 
     private fun handleException(e: Throwable, context: CoroutineContext) {
         if (!closeOnExceptions) {
-            val handler = scope.coroutineContext[CoroutineExceptionHandler]
+            val handler = coroutineContext[CoroutineExceptionHandler]
             if (handler != null) {
                 handler.handleException(context, e)
                 return
@@ -405,13 +397,13 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                     e.addSuppressed(cause)
                 }
                 events.emit(FluxoEvent.UnhandledError(this@FluxoStore, e))
-                handleException(e, coroutineContext)
+                handleException(e, currentCoroutineContext())
             }
         }
     }
 
     /** Will be called only once for each [FluxoStore] */
-    private fun launch() = scope.launch(
+    private fun launch() = launch(
         when {
             !debugChecks -> EmptyCoroutineContext
             else -> CoroutineName("$F[$name:launch]")
@@ -436,7 +428,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 is StoreRequest.RestoreState -> updateState(request)
             }
         }
-        scope.launch(intentContext, start = coroutineStart) {
+        launch(intentContext, start = coroutineStart) {
             with(inputStrategy) {
                 inputStrategyScope.processRequests(requestsFlow)
             }
@@ -521,12 +513,12 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         } catch (e: Throwable) {
             deferred?.completeExceptionally(e)
             events.emit(FluxoEvent.IntentError(this, intent, e))
-            handleException(e, coroutineContext)
+            handleException(e, currentCoroutineContext())
         }
     }
 
     private suspend fun postSideJob(request: SideJobRequest<Intent, State, SideEffect>) {
-        check(scope !== sideJobScope) { "Side jobs are disabled for the current store: $name" }
+        check(this !== sideJobScope) { "Side jobs are disabled for the current store: $name" }
 
         events.emit(FluxoEvent.SideJobQueued(this@FluxoStore, request.key))
 
@@ -627,7 +619,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     }
 
     /**
-     * Called on [scope] completion for any reason.
+     * Called on shutdown for any reason.
      */
     private fun onShutdown(cause: Throwable?) {
         events.tryEmit(FluxoEvent.StoreClosed(this, cause))
@@ -669,7 +661,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // It allows consumers to process final events in interceptors.
         // Cancel it with a delay.
         val interceptorScope = interceptorScope
-        if (interceptorScope !== scope && interceptorScope.isActive) {
+        if (interceptorScope !== this && interceptorScope.isActive) {
             @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
             interceptorScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 val events = events

@@ -12,4 +12,10 @@ internal class SideJobRequest<out Intent, State, out SideEffect : Any>(
     @JvmField val context: CoroutineContext = EmptyCoroutineContext,
     @JvmField val start: CoroutineStart = CoroutineStart.DEFAULT,
     @JvmField val block: SideJob<Intent, State, SideEffect>,
-)
+) {
+    internal companion object {
+        internal const val DEFAULT_SIDE_JOB = "default"
+        internal const val BOOTSTRAPPER_SIDE_JOB = "bootstrapper"
+        internal const val DEFAULT_REPEAT_ON_SUBSCRIPTION_JOB = "repeatOnSubscription"
+    }
+}

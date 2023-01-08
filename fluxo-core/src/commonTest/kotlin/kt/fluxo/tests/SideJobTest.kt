@@ -6,10 +6,10 @@ import kotlinx.coroutines.isActive
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
 import kt.fluxo.core.dsl.SideJobScope.RestartState
-import kt.fluxo.core.dsl.StoreScope
 import kt.fluxo.core.dsl.accept
 import kt.fluxo.core.intent
 import kt.fluxo.core.intercept.FluxoEvent
+import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
 import kt.fluxo.core.store
 import kt.fluxo.test.runUnitTest
 import kotlin.test.Test
@@ -114,7 +114,7 @@ internal class SideJobTest {
                 val event = awaitItem()
                 if (event is FluxoEvent.SideJobError) {
                     assertEquals(RestartState.Initial, event.restartState)
-                    assertEquals(StoreScope.DEFAULT_SIDE_JOB, event.key)
+                    assertEquals(DEFAULT_SIDE_JOB, event.key)
                     assertIs<UnsupportedOperationException>(event.e)
                     cancelAndIgnoreRemainingEvents()
                     break

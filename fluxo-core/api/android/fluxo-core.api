@@ -127,6 +127,10 @@ public abstract interface class kt/fluxo/core/Store : java/io/Closeable {
 	public abstract fun start ()Lkotlinx/coroutines/Job;
 }
 
+public abstract interface class kt/fluxo/core/StoreFactory {
+	public abstract fun create ()Lkt/fluxo/core/Store;
+}
+
 public abstract interface class kt/fluxo/core/StoreHost {
 	public abstract fun getStore ()Lkt/fluxo/core/Store;
 }
