@@ -9,7 +9,7 @@ import kt.fluxo.core.annotation.FluxoDsl
 import kotlin.js.JsName
 
 @FluxoDsl
-public interface SideJobScope<in Intent, State, in SideEffect : Any> : CoroutineScope {
+public interface SideJobScopeLegacy<in Intent, State, in SideEffect : Any> : CoroutineScope {
 
     public val currentStateWhenStarted: State
 

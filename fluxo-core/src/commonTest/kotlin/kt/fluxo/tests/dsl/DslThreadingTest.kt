@@ -8,7 +8,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kt.fluxo.core.ContainerHost
+import kt.fluxo.core.dsl.ContainerHost
 import kt.fluxo.core.container
 import kt.fluxo.core.intent
 import kt.fluxo.test.CoroutineScopeAwareTest

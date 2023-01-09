@@ -4,11 +4,12 @@ package kt.fluxo.core.intercept
 
 import kotlinx.coroutines.channels.Channel
 import kt.fluxo.core.Store
-import kt.fluxo.core.dsl.SideJobScope.RestartState
-import kt.fluxo.core.dsl.SideJobScope.RestartState.Restarted
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState.Restarted
 import kt.fluxo.core.Bootstrapper as B
 
 @Suppress("ArgumentListWrapping")
+@Deprecated("For migration")
 public sealed class FluxoEvent<Intent, State, SideEffect : Any>(
     public val store: Store<Intent, State, SideEffect>,
 ) {

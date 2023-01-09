@@ -5,7 +5,7 @@ package kt.fluxo.core.internal
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kt.fluxo.core.dsl.BootstrapperScope
+import kt.fluxo.core.dsl.BootstrapperScopeLegacy
 import kotlin.coroutines.CoroutineContext
 
 internal class BootstrapperScopeImpl<in Intent, State, SideEffect : Any>(
@@ -27,7 +27,7 @@ internal class BootstrapperScopeImpl<in Intent, State, SideEffect : Any>(
     sendSideJob = sendSideJob,
     subscriptionCount = subscriptionCount,
     coroutineContext = coroutineContext,
-), BootstrapperScope<Intent, State, SideEffect> {
+), BootstrapperScopeLegacy<Intent, State, SideEffect> {
 
     override suspend fun postIntent(intent: Intent): Job {
         guardian?.checkPostIntent()

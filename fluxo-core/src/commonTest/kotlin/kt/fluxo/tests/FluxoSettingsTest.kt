@@ -68,7 +68,7 @@ class FluxoSettingsTest {
         assertEquals(EmptyCoroutineContext, s.interceptorContext)
         assertEquals(EmptyCoroutineContext, s.sideJobsContext)
         assertEquals(EmptyCoroutineContext, s.intentContext)
-        assertEquals(Dispatchers.Default, s.eventLoopContext)
+        assertEquals(Dispatchers.Default, s.coroutineContext)
         assertNull(s.scope)
 
         assertEquals(SideEffectsStrategy.RECEIVE, s.sideEffectsStrategy)

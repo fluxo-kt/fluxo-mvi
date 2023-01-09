@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.sync.Mutex
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
-import kt.fluxo.core.dsl.SideJobScope.RestartState
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.repeatOnSubscription
 import kt.fluxo.test.CoroutineScopeAwareTest

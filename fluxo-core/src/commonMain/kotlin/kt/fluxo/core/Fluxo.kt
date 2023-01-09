@@ -4,6 +4,8 @@ package kt.fluxo.core
 
 import kotlinx.coroutines.CoroutineScope
 import kt.fluxo.core.annotation.FluxoDsl
+import kt.fluxo.core.dsl.ContainerHost
+import kt.fluxo.core.factory.FluxoStoreFactory
 import kt.fluxo.core.internal.FluxoIntentHandler
 import kt.fluxo.core.internal.ReducerIntentHandler
 import kotlin.contracts.InvocationKind
@@ -31,7 +33,7 @@ public inline fun <State> CoroutineScope.container(
 ): ContainerS<State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.container(initialState, settings, setup = {
-        eventLoopContext = coroutineContext
+        coroutineContext = coroutineContext
         setup()
     })
 }
@@ -51,7 +53,7 @@ public inline fun <State, SideEffect : Any> CoroutineScope.container(
 ): Container<State, SideEffect> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.container(initialState, settings, setup = {
-        eventLoopContext = coroutineContext
+        coroutineContext = coroutineContext
         setup()
     })
 }
@@ -86,7 +88,7 @@ public inline fun <Intent, State> CoroutineScope.store(
 ): StoreS<Intent, State> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.store(initialState, handler, settings, setup = {
-        eventLoopContext = coroutineContext
+        coroutineContext = coroutineContext
         setup()
     })
 }
@@ -108,7 +110,7 @@ public inline fun <Intent, State, SideEffect : Any> CoroutineScope.store(
 ): Store<Intent, State, SideEffect> {
     contract { callsInPlace(setup, InvocationKind.EXACTLY_ONCE) }
     return kt.fluxo.core.store(initialState, handler, settings, setup = {
-        eventLoopContext = coroutineContext
+        coroutineContext = coroutineContext
         setup()
     })
 }

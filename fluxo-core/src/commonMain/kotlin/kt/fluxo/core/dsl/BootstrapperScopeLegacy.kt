@@ -5,7 +5,7 @@ import kt.fluxo.core.annotation.FluxoDsl
 import kotlin.js.JsName
 
 @FluxoDsl
-public interface BootstrapperScope<in Intent, State, in SideEffect : Any> : StoreScope<Intent, State, SideEffect> {
+public interface BootstrapperScopeLegacy<in Intent, State, in SideEffect : Any> : StoreScopeLegacy<Intent, State, SideEffect> {
 
     @JsName("postIntent")
     public suspend fun postIntent(intent: Intent): Job

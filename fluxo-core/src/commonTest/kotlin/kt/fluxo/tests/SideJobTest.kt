@@ -5,7 +5,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
-import kt.fluxo.core.dsl.SideJobScope.RestartState
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kt.fluxo.core.dsl.accept
 import kt.fluxo.core.intent
 import kt.fluxo.core.intercept.FluxoEvent

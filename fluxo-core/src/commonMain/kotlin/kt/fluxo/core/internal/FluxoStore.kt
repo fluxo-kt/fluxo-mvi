@@ -49,7 +49,7 @@ import kt.fluxo.core.data.GuaranteedEffect
 import kt.fluxo.core.debug.DEBUG
 import kt.fluxo.core.debug.debugIntentWrapper
 import kt.fluxo.core.dsl.InputStrategyScope
-import kt.fluxo.core.dsl.SideJobScope.RestartState
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.intercept.StoreRequest
 import kotlin.coroutines.CoroutineContext
@@ -106,13 +106,13 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     private val interceptors = conf.interceptors.toTypedArray()
     private val bootstrapper = conf.bootstrapper
     private val intentFilter = conf.intentFilter
-    private val coroutineStart = if (conf.offloadAllToScope) CoroutineStart.DEFAULT else CoroutineStart.UNDISPATCHED
+    private val coroutineStart = if (!conf.optimized) CoroutineStart.DEFAULT else CoroutineStart.UNDISPATCHED
 
     @OptIn(InternalCoroutinesApi::class)
     private val cancellationCause get() = coroutineContext[Job]?.getCancellationException()
 
     init {
-        val ctx = conf.eventLoopContext + (conf.scope?.coroutineContext ?: EmptyCoroutineContext) + when {
+        val ctx = conf.coroutineContext + (conf.scope?.coroutineContext ?: EmptyCoroutineContext) + when {
             !debugChecks -> EmptyCoroutineContext
             else -> CoroutineName(toString())
         }

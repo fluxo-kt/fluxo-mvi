@@ -3,7 +3,7 @@ package kt.fluxo.core.internal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kt.fluxo.core.annotation.InternalFluxoApi
-import kt.fluxo.core.dsl.SideJobScope
+import kt.fluxo.core.dsl.SideJobScopeLegacy
 
 @InternalFluxoApi
 internal class SideJobScopeImpl<in Intent, State, in SideEffect : Any>(
@@ -11,9 +11,9 @@ internal class SideJobScopeImpl<in Intent, State, in SideEffect : Any>(
     private val sendIntent: suspend (Intent) -> Job,
     private val sendSideEffect: suspend (SideEffect) -> Unit,
     override val currentStateWhenStarted: State,
-    override val restartState: SideJobScope.RestartState,
+    override val restartState: SideJobScopeLegacy.RestartState,
     coroutineScope: CoroutineScope,
-) : SideJobScope<Intent, State, SideEffect>, CoroutineScope by coroutineScope {
+) : SideJobScopeLegacy<Intent, State, SideEffect>, CoroutineScope by coroutineScope {
 
     override suspend fun updateState(function: (State) -> State) = updateStateAndGet(function)
 

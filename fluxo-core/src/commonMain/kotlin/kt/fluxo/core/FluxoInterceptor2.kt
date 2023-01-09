@@ -4,10 +4,11 @@ package kt.fluxo.core
 
 import kt.fluxo.core.annotation.CallSuper
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
-import kt.fluxo.core.dsl.SideJobScope.RestartState
+import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kotlin.js.JsName
 
 @ExperimentalFluxoApi
+@Deprecated("For migration")
 public interface FluxoInterceptor2<I, S, SE : Any> {
 
     @CallSuper

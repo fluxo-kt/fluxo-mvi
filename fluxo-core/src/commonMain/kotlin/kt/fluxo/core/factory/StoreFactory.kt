@@ -1,7 +1,11 @@
-package kt.fluxo.core
+package kt.fluxo.core.factory
 
+import kt.fluxo.core.FluxoSettings
+import kt.fluxo.core.IntentHandler
+import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kt.fluxo.core.annotation.ThreadSafe
+import kt.fluxo.core.fluxoSettings
 import kotlin.js.JsName
 
 /**

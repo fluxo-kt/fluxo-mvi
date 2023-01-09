@@ -5,7 +5,7 @@ package kt.fluxo.core.internal
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.StateFlow
 import kt.fluxo.core.SideJob
-import kt.fluxo.core.dsl.StoreScope
+import kt.fluxo.core.dsl.StoreScopeLegacy
 import kotlin.coroutines.CoroutineContext
 
 internal open class StoreScopeImpl<in Intent, State, SideEffect : Any>(
@@ -17,7 +17,7 @@ internal open class StoreScopeImpl<in Intent, State, SideEffect : Any>(
     private val sendSideJob: suspend (SideJobRequest<Intent, State, SideEffect>) -> Unit,
     final override val subscriptionCount: StateFlow<Int>,
     final override val coroutineContext: CoroutineContext,
-) : StoreScope<Intent, State, SideEffect> {
+) : StoreScopeLegacy<Intent, State, SideEffect> {
 
     final override val state: State
         get() {

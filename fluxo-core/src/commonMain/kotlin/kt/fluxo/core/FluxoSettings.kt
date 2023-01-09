@@ -95,7 +95,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
         onStart(bootstrapper)
     }
 
-    /** [bootstrapper] convenience method when you need only a [sideJob][kt.fluxo.core.dsl.StoreScope.sideJob] */
+    /** [bootstrapper] convenience method when you need only a [sideJob][kt.fluxo.core.dsl.StoreScopeLegacy.sideJob] */
     @JsName("bootstrapperJob")
     public fun bootstrapperJob(
         key: String = BOOTSTRAPPER_SIDE_JOB,
@@ -164,23 +164,25 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     // region Coroutines control
 
     /**
-     * Additional 'parent' [CoroutineScope] for running store. It will be added to [eventLoopContext].
+     * Additional 'parent' [CoroutineScope] for running store. It will be added to [coroutineContext].
      */
     public var scope: CoroutineScope? = null
 
     /**
      * [CoroutineDispatcher] or any [CoroutineContext] to run the [Store] event loop.
      */
-    public var eventLoopContext: CoroutineContext = Dispatchers.Default
+    public var coroutineContext: CoroutineContext = Dispatchers.Default
+    @Deprecated("For removal", level = DeprecationLevel.ERROR)
     public var intentContext: CoroutineContext = EmptyCoroutineContext
     public var sideJobsContext: CoroutineContext = EmptyCoroutineContext
+    @Deprecated("For removal", level = DeprecationLevel.ERROR)
     public var interceptorContext: CoroutineContext = EmptyCoroutineContext
 
     /**
-     * If true the [Store] will offload everything possible to the provided [scope] and contexts, not trying to optimize performance.
+     * If false the [Store] will offload everything possible to the provided [scope], not trying to optimize performance.
      */
-    @get:JvmName("isOffloadAllToScope")
-    public var offloadAllToScope: Boolean = false
+    @get:JvmName("isOptimized")
+    public var optimized: Boolean = true
 
     /**
      * [CoroutineExceptionHandler] to receive exception happened in processing.
@@ -276,10 +278,9 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
 
         s.exceptionHandler = exceptionHandler
 
-        s.interceptorContext = interceptorContext
+        s.optimized = optimized
         s.sideJobsContext = sideJobsContext
-        s.intentContext = intentContext
-        s.eventLoopContext = eventLoopContext
+        s.coroutineContext = coroutineContext
         s.scope = scope
 
         s.sideEffectsStrategy = sideEffectsStrategy

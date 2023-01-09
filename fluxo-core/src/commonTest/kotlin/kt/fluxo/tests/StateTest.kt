@@ -3,7 +3,7 @@ package kt.fluxo.tests
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.runTest
-import kt.fluxo.core.ContainerHost
+import kt.fluxo.core.dsl.ContainerHost
 import kt.fluxo.core.container
 import kt.fluxo.core.intent
 import kt.fluxo.core.intercept.FluxoEvent

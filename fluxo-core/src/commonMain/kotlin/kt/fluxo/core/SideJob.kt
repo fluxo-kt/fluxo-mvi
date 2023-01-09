@@ -1,5 +1,5 @@
 package kt.fluxo.core
 
-import kt.fluxo.core.dsl.SideJobScope
+import kt.fluxo.core.dsl.SideJobScopeLegacy
 
-public typealias SideJob<Intent, State, SideEffect> = suspend SideJobScope<Intent, State, SideEffect>.() -> Unit
+public typealias SideJob<Intent, State, SideEffect> = suspend SideJobScopeLegacy<Intent, State, SideEffect>.() -> Unit

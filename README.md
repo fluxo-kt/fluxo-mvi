@@ -29,14 +29,20 @@ _it should be possible to combine all the strong sides of strict **Redux/MVI** w
 ease of readability, and maintainability of the **MVVM+**._
 
 The experiment paid off!
-It is possible to combine **MVVM+** with high-quality time-travel, logging,
+It is possible to combine **MVVM+** with outstanding performance, high-quality time-travel, logging,
 auto-analysis of the transition graph and much more.
 A long list of features is implemented gradually in this library (see the [Roadmap](#roadmap) for details).
 
 Basic usage is elementary, yet you can take advantage of fine-tuning and super powerful features when you need them.
 
-* Kotlin **coroutine-based** state handling.
-* One-liner creation, simple usage, type-safe, no-boilerplate.
+* Kotlin **coroutine-based** state container.
+* One-liner creation, simple usage, type-safe, no-boilerplate!
+* Can be used for UI or background tasks with same ease.
+* Native integration with coroutines:
+  * Each Fluxo [`Store`][Store] is a [`StateFlow`][StateFlow] with **states** and a [`FlowCollector`][FlowCollector]
+    for **intents**. It allows you to easily combine them with each other and with any other flows and collectors.
+  * Also, Fluxo [`Store`][Store] is a [`CoroutineScope`][CoroutineScope] itself, so you can integrate it with
+    any existing coroutine workflow and treat just as a usual coroutine scope.
 * **Multiplatform**, supports all Kotlin MPP/KMM targets (**Android**, **iOS**, **JVM**,
   **JS**, **Linux**, **Windows/MinGW**, **macOS**, **watchOS**, **tvOS**).
 * Different usage styles:
@@ -155,3 +161,8 @@ available, see the [tags on this repository](../../tags).
 This project is licensed under the Apache License, Version 2.0 — see the
 [license](LICENSE) file for details.
 
+
+[Store]: fluxo-core/src/commonMain/kotlin/kt/fluxo/core/Store.kt
+[StateFlow]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/
+[FlowCollector]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-flow-collector/
+[CoroutineScope]: https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-coroutine-scope/

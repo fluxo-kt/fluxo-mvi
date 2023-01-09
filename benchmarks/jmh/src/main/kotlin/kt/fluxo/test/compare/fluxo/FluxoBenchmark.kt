@@ -6,7 +6,7 @@ import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
-import kt.fluxo.core.dsl.StoreScope
+import kt.fluxo.core.dsl.StoreScopeLegacy
 import kt.fluxo.core.internal.Closeable
 import kt.fluxo.core.store
 import kt.fluxo.test.compare.CommonBenchmark.consumeCommon
@@ -18,11 +18,11 @@ internal object FluxoBenchmark {
     fun mvvmIntent(): Int {
         val dispatcher = newSingleThreadContext(FluxoBenchmark::mvvmIntent.name)
         val container = container(0) {
-            eventLoopContext = dispatcher
+            coroutineContext = dispatcher
             debugChecks = false
             lazy = false
         }
-        val intent: suspend StoreScope<Nothing, Int, Nothing>.() -> Unit = { updateState { it + 1 } }
+        val intent: suspend StoreScopeLegacy<Nothing, Int, Nothing>.() -> Unit = { updateState { it + 1 } }
         return container.consumeFluxo(intent, dispatcher)
     }
 
@@ -36,7 +36,7 @@ internal object FluxoBenchmark {
                 }
             },
         ) {
-            eventLoopContext = dispatcher
+            coroutineContext = dispatcher
             debugChecks = false
             lazy = false
         }
@@ -53,7 +53,7 @@ internal object FluxoBenchmark {
                 }
             },
         ) {
-            eventLoopContext = dispatcher
+            coroutineContext = dispatcher
             debugChecks = false
             lazy = false
         }

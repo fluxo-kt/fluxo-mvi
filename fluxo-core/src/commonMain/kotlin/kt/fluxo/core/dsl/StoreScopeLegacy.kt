@@ -2,25 +2,33 @@
 
 package kt.fluxo.core.dsl
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
-import kt.fluxo.core.annotation.CallSuper
-import kt.fluxo.core.annotation.ExperimentalFluxoApi
+import kt.fluxo.core.annotation.FluxoDsl
 import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
 
-/**
- * Mutable [Store] scope for handlers, decorators and
- */
-@ExperimentalFluxoApi
-public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, State, SideEffect> {
+@FluxoDsl
+public interface StoreScopeLegacy<in Intent, State, in SideEffect : Any> : CoroutineScope {
+
+    public val state: State
+
+    /**
+     * The number of subscribers (active collectors) for the current [Store].
+     * Never negative and starts with zero. Can be used to react to changes in the number of subscriptions to this shared flow.
+     *
+     * @see kt.fluxo.core.repeatOnSubscription
+     * @see kotlinx.coroutines.flow.MutableSharedFlow.subscriptionCount
+     */
+    public val subscriptionCount: StateFlow<Int>
 
     /**
      * Updates the [Store.state] atomically using the specified [function] of its value.
@@ -29,43 +37,31 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
      *
      * @see MutableStateFlow.update
      */
-    @CallSuper
     @JsName("updateState")
-    // FIXME: Should be an inline helper
     public suspend fun updateState(function: (State) -> State): State
 
-    @CallSuper
     @JsName("postSideEffect")
     public suspend fun postSideEffect(sideEffect: SideEffect)
 
+    // TODO: Return some kind of DisposableHandle/Job?
+    //  see https://github.com/1gravity/Kotlin-Bloc/releases/tag/v0.9.3
     /**
      *
      * @see kotlinx.coroutines.launch
      */
-    @CallSuper
     @JsName("sideJob")
     public suspend fun sideJob(
         key: String = DEFAULT_SIDE_JOB,
         context: CoroutineContext = EmptyCoroutineContext,
         start: CoroutineStart = CoroutineStart.DEFAULT,
         block: SideJob<Intent, State, SideEffect>,
-    ): Job
-
-
-    // region Migration and convenience helpers
-
-    /** @see updateState */
-    @InlineOnly
-    @JsName("reduce")
-    @Deprecated(
-        message = "Please use updateState instead",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith("updateState { state ->\n    reducer()    \n}"),
     )
-    public suspend fun reduce(reducer: (State) -> State): State = updateState(reducer)
+
+    public fun noOp()
 
 
-    /** @see sideJob */
+    // region Convenience helpers
+
     @InlineOnly
     @JsName("launch")
     @Deprecated(
@@ -73,9 +69,8 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
         replaceWith = ReplaceWith("sideJob(key, block)"),
         level = DeprecationLevel.ERROR,
     )
-    public fun launch(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, *, *>): Unit = throw NotImplementedError()
+    public fun launch(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, State, SideEffect>): Unit = throw NotImplementedError()
 
-    /** @see sideJob */
     @InlineOnly
     @JsName("async")
     @Deprecated(
@@ -83,7 +78,27 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
         replaceWith = ReplaceWith("sideJob(key, block)"),
         level = DeprecationLevel.ERROR,
     )
-    public fun async(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, *, *>): Unit = throw NotImplementedError()
+    public fun async(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, State, SideEffect>): Unit = throw NotImplementedError()
+
+    // endregion
+
+
+    // region Migration helpers
+
+    /**
+     * Helper for migration from Orbit.
+     * Consider to use [updateState] instead.
+     */
+    @InlineOnly
+    @JsName("reduce")
+    @Deprecated(
+        message = "Please use the updateState instead",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("updateState { state ->\n    reducer()    \n}"),
+    )
+    public suspend fun reduce(reducer: (State) -> State) {
+        updateState(reducer)
+    }
 
     // endregion
 }
