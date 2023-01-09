@@ -19,9 +19,9 @@ internal fun Throwable?.toCancellationException() = when (this) {
 }
 
 
-internal fun StateFlow<Int>.plusIn(scope: CoroutineScope, other: StateFlow<Int>): StateFlow<Int> {
+internal fun StateFlow<Int>.plusIn(scope: CoroutineScope, started: SharingStarted, other: StateFlow<Int>): StateFlow<Int> {
     return combine(other) { a, b -> a + b }
-        .stateIn(scope, SharingStarted.Eagerly, initialValue = value + other.value)
+        .stateIn(scope, started, initialValue = value + other.value)
 }
 
 

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import kt.fluxo.core.FluxoClosedException
@@ -53,7 +54,7 @@ class ContainerExceptionHandlerTest {
 
         assertEquals(false, container.isActive, "Container is active but shouldn't.")
         assertEquals(false, job.isActive, "Job is active but shouldn't.")
-        assertEquals(initState, container.stateFlow.first())
+        assertEquals(initState, container.first())
 
         assertIs<IllegalStateException>(completionException, "completionException was not caught.")
     }
@@ -63,7 +64,6 @@ class ContainerExceptionHandlerTest {
         val initState = 10
         val exceptions = mutableListOf<Throwable>()
         val container = container(initState) {
-            intentContext = Dispatchers.Unconfined
             onError { exceptions += it }
             closeOnExceptions = false
         }
@@ -74,13 +74,13 @@ class ContainerExceptionHandlerTest {
                 throw IllegalStateException()
             }
         }
-        container.sendAsync {
+        container.send {
             updateState {
                 newState
             }
         }.join()
 
-        assertEquals(newState, container.state)
+        assertEquals(newState, container.value)
         assertEquals(1, exceptions.size)
         assertIs<IllegalStateException>(exceptions.first(), "completionException was not caught.")
 
@@ -104,7 +104,6 @@ class ContainerExceptionHandlerTest {
         }
         val container = containerScope.container<Unit, Nothing>(initialState = Unit) {
             exceptionHandler = handler
-            intentContext = Dispatchers.Unconfined
         }
 
         // required on JS to pass this test

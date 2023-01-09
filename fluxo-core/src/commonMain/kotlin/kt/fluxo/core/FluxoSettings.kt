@@ -113,11 +113,14 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
      *
      * @see FluxoInterceptor
      */
+    @Deprecated("For migration")
     public val interceptors: MutableList<FluxoInterceptor<Intent, State, SideEffect>> = mutableListOf()
 
     /** [interceptors] convenience method */
     @InlineOnly
     @JsName("interceptor")
+    @Deprecated("For migration")
+    @Suppress("DeprecatedCallableAddReplaceWith")
     public inline fun interceptor(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
         interceptors.add(FluxoInterceptor(onEvent))
     }
@@ -125,6 +128,8 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     /** [interceptors] convenience method */
     @InlineOnly
     @JsName("onEvent")
+    @Deprecated("For migration")
+    @Suppress("DeprecatedCallableAddReplaceWith")
     public inline fun onEvent(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
         interceptor(onEvent)
     }

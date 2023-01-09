@@ -64,10 +64,9 @@ class FluxoSettingsTest {
         val s = FluxoSettings.DEFAULT.copy()
 
         assertNull(s.exceptionHandler)
+        assertTrue(s.optimized)
 
-        assertEquals(EmptyCoroutineContext, s.interceptorContext)
         assertEquals(EmptyCoroutineContext, s.sideJobsContext)
-        assertEquals(EmptyCoroutineContext, s.intentContext)
         assertEquals(Dispatchers.Default, s.coroutineContext)
         assertNull(s.scope)
 

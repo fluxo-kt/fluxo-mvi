@@ -53,7 +53,8 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
 
     @CallSuper
     @JsName("onClose")
-    public suspend fun onClose(cause: Throwable?)
+    public suspend fun onClose(cause: Throwable?) {
+    }
 }
 
 @InlineOnly

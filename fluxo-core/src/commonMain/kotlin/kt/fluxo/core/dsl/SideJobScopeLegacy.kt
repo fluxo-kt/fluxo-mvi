@@ -9,6 +9,7 @@ import kt.fluxo.core.annotation.FluxoDsl
 import kotlin.js.JsName
 
 @FluxoDsl
+@Deprecated("For removal")
 public interface SideJobScopeLegacy<in Intent, State, in SideEffect : Any> : CoroutineScope {
 
     public val currentStateWhenStarted: State

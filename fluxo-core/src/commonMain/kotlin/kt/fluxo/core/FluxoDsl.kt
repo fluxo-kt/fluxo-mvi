@@ -30,9 +30,7 @@ import kotlin.jvm.JvmName
 @JvmName("closeStoreAndWait")
 public suspend fun Store<*, *, *>.closeAndWait() {
     close()
-    val store = this as FluxoStore
-    store.interceptorScope.coroutineContext[Job]!!.join()
-    store.intentContext[Job]!!.join()
+    coroutineContext[Job]?.join()
 }
 
 /**

@@ -73,7 +73,11 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
         replaceWith = ReplaceWith("sideJob(key, block)"),
         level = DeprecationLevel.ERROR,
     )
-    public fun launch(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, *, *>): Unit = throw NotImplementedError()
+    public fun launch(
+        context: CoroutineContext = EmptyCoroutineContext,
+        key: String = DEFAULT_SIDE_JOB,
+        block: SideJob<Intent, *, *>,
+    ): Unit = throw NotImplementedError()
 
     /** @see sideJob */
     @InlineOnly
@@ -83,7 +87,11 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
         replaceWith = ReplaceWith("sideJob(key, block)"),
         level = DeprecationLevel.ERROR,
     )
-    public fun async(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, *, *>): Unit = throw NotImplementedError()
+    public fun async(
+        context: CoroutineContext = EmptyCoroutineContext,
+        key: String = DEFAULT_SIDE_JOB,
+        block: SideJob<Intent, *, *>,
+    ): Unit = throw NotImplementedError()
 
     // endregion
 }

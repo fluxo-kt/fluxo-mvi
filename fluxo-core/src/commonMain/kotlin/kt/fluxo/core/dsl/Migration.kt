@@ -27,7 +27,7 @@ public inline val <S, SE : Any> ContainerHost<S, SE>.store get() = container
     replaceWith = ReplaceWith("send(intent)"),
 )
 // TODO: inline modifier causes NPE in InlineParameterChecker
-public suspend fun <S, SE : Any> Container<S, SE>.orbit(intent: FluxoIntent<S, SE>) = sendAsync(intent)
+public suspend fun <S, SE : Any> Container<S, SE>.orbit(intent: FluxoIntent<S, SE>) = emit(intent)
 
 @InlineOnly
 @Deprecated(
