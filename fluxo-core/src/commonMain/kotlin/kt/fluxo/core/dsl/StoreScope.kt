@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kt.fluxo.core.IntentHandler
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.CallSuper
@@ -22,6 +23,8 @@ import kotlin.js.JsName
 @ExperimentalFluxoApi
 public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, State, SideEffect> {
 
+    override var value: State
+
     /**
      * Updates the [Store.state] atomically using the specified [function] of its value.
      *
@@ -31,8 +34,7 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
      */
     @CallSuper
     @JsName("updateState")
-    // FIXME: Should be an inline helper
-    public suspend fun updateState(function: (State) -> State): State
+    public suspend fun updateState(function: (prevState: State) -> State): State
 
     @CallSuper
     @JsName("postSideEffect")
@@ -53,6 +55,12 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, 
 
 
     // region Migration and convenience helpers
+
+    /**
+     * Explicitly mark a branch in the [IntentHandler] as doing nothing.
+     * It will be considered as been handled properly even though nothing happened.
+     */
+    public fun noOp() {}
 
     /** @see updateState */
     @InlineOnly

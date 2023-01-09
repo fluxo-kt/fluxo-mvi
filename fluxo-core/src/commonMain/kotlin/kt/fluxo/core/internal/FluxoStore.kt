@@ -19,7 +19,6 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -192,21 +191,19 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         } else {
             val seResendLock = Mutex()
             val channel = Channel<SideEffect>(conf.sideEffectBufferSize, BufferOverflow.SUSPEND) {
-                scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                    // We don't want to fall into the recursion, so only one resending per moment.
-                    var resent = false
-                    if (isActive && seResendLock.tryLock()) {
-                        try {
-                            @Suppress("UNINITIALIZED_VARIABLE")
-                            resent = sideEffectChannel!!.trySend(it).isSuccess
-                        } catch (_: Throwable) {
-                        } finally {
-                            seResendLock.unlock()
-                        }
+                // We don't want to fall into the recursion, so only one resending per moment.
+                var resent = false
+                if (isActive && seResendLock.tryLock()) {
+                    try {
+                        @Suppress("UNINITIALIZED_VARIABLE")
+                        resent = sideEffectChannel!!.trySend(it).isSuccess
+                    } catch (_: Throwable) {
+                    } finally {
+                        seResendLock.unlock()
                     }
-                    if (!resent) {
-                        it.closeSafely()
-                    }
+                }
+                if (!resent) {
+                    it.closeSafely()
                 }
             }
             sideEffectChannel = channel
@@ -233,10 +230,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             // Lazy start on state subscription
             val subscriptions = subscriptionCount
             scope.launch(
-                when {
-                    !debugChecks -> EmptyCoroutineContext
-                    else -> CoroutineName("$F[$name:lazyStart]")
-                },
+                context = if (!debugChecks) EmptyCoroutineContext else CoroutineName("$F[$name:lazyStart]"),
                 start = coroutineStart,
             ) {
                 // start on the first subscriber.
@@ -289,33 +283,44 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
 
     // region Internals
 
-    private suspend fun updateState(request: StoreRequest.RestoreState<Intent, State>): State {
+    override var value: State
+        get() = mutableState.value
+        set(value) {
+            updateStateAndGet { value }
+        }
+
+    override suspend fun updateState(function: (State) -> State): State {
+        return updateStateAndGet(function)
+    }
+
+    private fun updateState(request: StoreRequest.RestoreState<Intent, State>) {
         try {
-            val state = updateState(request.state)
+            value = request.state
             request.deferred.complete(Unit)
-            return state
         } catch (e: Throwable) {
             request.deferred.cancel(e.toCancellationException())
             throw e
         }
     }
 
-    private suspend fun updateState(nextValue: State): State = updateStateAndGet { nextValue }
-
-    private suspend fun updateStateAndGet(function: (State) -> State): State {
+    private inline fun updateStateAndGet(function: (State) -> State): State {
+        val stateFlow = mutableState
         while (true) {
-            val prevValue = mutableState.value
+            val prevValue = stateFlow.value
             val nextValue = function(prevValue)
-            if (mutableState.compareAndSet(prevValue, nextValue)) {
+            if (stateFlow.compareAndSet(prevValue, nextValue)) {
                 if (prevValue != nextValue) {
                     prevValue.closeSafely()
                 }
                 return nextValue
             }
-            // TODO: we may need to close nextValue here
-            currentCoroutineContext().ensureActive()
+            if (!isActive) {
+                nextValue.closeSafely()
+                throw cancellationCause!!
+            }
         }
     }
+
 
     override suspend fun postSideEffect(sideEffect: SideEffect) {
         try {
@@ -352,7 +357,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         throw e
     }
 
-    private suspend fun Any?.closeSafely(cause: Throwable? = null) {
+    private fun Any?.closeSafely(cause: Throwable? = null, ctx: CoroutineContext? = null) {
         if (this is Closeable) {
             try {
                 close() // Close if Closeable resource
@@ -360,17 +365,14 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 if (cause != null) {
                     e.addSuppressed(cause)
                 }
-                handleException(e, currentCoroutineContext())
+                handleException(e, ctx ?: coroutineContext)
             }
         }
     }
 
     /** Will be called only once for each [FluxoStore] */
     private fun launch() = launch(
-        when {
-            !debugChecks -> EmptyCoroutineContext
-            else -> CoroutineName("$F[$name:launch]")
-        },
+        context = if (!debugChecks) EmptyCoroutineContext else CoroutineName("$F[$name:launch]"),
         start = coroutineStart,
     ) {
         // observe and process intents
@@ -397,58 +399,65 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             }
         }
 
-        // bootstrap
         bootstrapper?.let { bootstrapper ->
-            safelyRunBootstrapper(bootstrapper)
+            try {
+                onBootstrap(bootstrapper)
+            } catch (_: CancellationException) {
+            } catch (e: Throwable) {
+                handleException(e, currentCoroutineContext())
+            }
         }
+
+        onStart()
     }
 
     private suspend fun safelyHandleIntent(intent: Intent, deferred: CompletableDeferred<Unit>?) {
-        val stateBeforeCancellation = mutableState.value
+        val stateBeforeCancellation = value
         try {
-            // Apply an intent filter before processing, if defined
-            intentFilter?.also { accept ->
-                if (!accept(stateBeforeCancellation, intent)) {
-                    return
-                }
-            }
-
-            with(intentHandler) {
-                // Await all children completions with coroutineScope
-                coroutineScope {
-                    val storeScope = StoreScopeImpl(
-                        job = intent,
-                        guardian = when {
-                            !debugChecks -> null
-                            else -> InputStrategyGuardian(
-                                parallelProcessing = inputStrategy.parallelProcessing,
-                                isBootstrap = false,
-                                intent = intent,
-                                handler = intentHandler,
-                            )
-                        },
-                        getState = mutableState::value,
-                        updateStateAndGet = ::updateStateAndGet,
-                        sendSideEffect = ::postSideEffect,
-                        sendSideJob = ::postSideJob,
-                        subscriptionCount = subscriptionCount,
-                        coroutineContext = coroutineContext,
-                    )
-                    storeScope.handleIntent(intent)
-                    storeScope.close()
-                }
-            }
-            deferred?.complete(Unit)
+            onIntent(intent)
         } catch (ce: CancellationException) {
             deferred?.completeExceptionally(ce)
             // reset state as intent did not complete successfully
             if (inputStrategy.rollbackOnCancellation) {
-                updateState(stateBeforeCancellation)
+                value = stateBeforeCancellation
             }
         } catch (e: Throwable) {
             deferred?.completeExceptionally(e)
             handleException(e, currentCoroutineContext())
+        } finally {
+            deferred?.complete(Unit)
         }
+    }
+
+    override suspend fun onIntent(intent: Intent) {
+        // Apply an intent filter before processing, if defined
+        intentFilter?.also { accept ->
+            if (!accept(value, intent)) {
+                return
+            }
+        }
+
+        val guardedScope = when {
+            !debugChecks -> null
+            else -> StoreScopeImpl(
+                guardian = InputStrategyGuardian(
+                    parallelProcessing = inputStrategy.parallelProcessing,
+                    isBootstrap = false,
+                    intent = intent,
+                    handler = intentHandler,
+                ),
+                store = this,
+            )
+        }
+        val scope = guardedScope ?: this
+        with(intentHandler) {
+            // Await all children completions with coroutineScope
+            // TODO: Can we awoid lambda creation?
+            coroutineScope {
+                scope.handleIntent(intent)
+            }
+        }
+        guardedScope?.close()
     }
 
     private suspend fun postSideJob(request: SideJobRequest<Intent, State, SideEffect>) {
@@ -487,7 +496,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 start = request.start,
             ) {
                 try {
-                    val sideJobScope = SideJobScopeImpl(
+                    val sideJobScope = SideJobScopeImplLegacy(
                         updateStateAndGet = ::updateStateAndGet,
                         sendIntent = ::send,
                         sendSideEffect = ::postSideEffect,
@@ -509,37 +518,26 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         )
     }
 
-    private suspend fun safelyRunBootstrapper(bootstrapper: Bootstrapper<Intent, State, SideEffect>) {
-        try {
-            // Await all children completions with coroutineScope
-            coroutineScope {
-                val bootstrapperScope = BootstrapperScopeImpl(
-                    bootstrapper = bootstrapper,
-                    guardian = if (!debugChecks) {
-                        null
-                    } else {
-                        InputStrategyGuardian(
-                            parallelProcessing = inputStrategy.parallelProcessing,
-                            isBootstrap = true,
-                            intent = null,
-                            handler = bootstrapper,
-                        )
-                    },
-                    getState = mutableState::value,
-                    updateStateAndGet = ::updateStateAndGet,
-                    sendIntent = ::send,
-                    sendSideEffect = ::postSideEffect,
-                    sendSideJob = ::postSideJob,
-                    subscriptionCount = subscriptionCount,
-                    coroutineContext = coroutineContext,
-                )
-                bootstrapperScope.bootstrapper()
-                bootstrapperScope.close()
-            }
-        } catch (_: CancellationException) {
-        } catch (e: Throwable) {
-            handleException(e, currentCoroutineContext())
+    override suspend fun onBootstrap(bootstrapper: Bootstrapper<Intent, State, SideEffect>) {
+        val guardedScope = when {
+            !debugChecks -> null
+            else -> StoreScopeImpl(
+                guardian = InputStrategyGuardian(
+                    parallelProcessing = inputStrategy.parallelProcessing,
+                    isBootstrap = true,
+                    intent = null,
+                    handler = bootstrapper,
+                ),
+                store = this,
+            )
         }
+        val scope = guardedScope ?: this
+        // Await all children completions with coroutineScope
+        // TODO: Can we awoid lambda creation?
+        coroutineScope {
+            scope.bootstrapper()
+        }
+        guardedScope?.close()
     }
 
     /**
@@ -557,14 +555,14 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         sideJobsMap.clear()
 
         // Close and clear state & side effects machinery.
+        value.closeSafely(ceCause)
+        (sideEffectFlowField as? MutableSharedFlow)?.apply {
+            val replayCache = replayCache
+            @OptIn(ExperimentalCoroutinesApi::class)
+            resetReplayCache()
+            replayCache.forEach { it.closeSafely(ceCause) }
+        }
         launch(Dispatchers.Unconfined + Job(), start = CoroutineStart.UNDISPATCHED) {
-            (sideEffectFlowField as? MutableSharedFlow)?.apply {
-                val replayCache = replayCache
-                @OptIn(ExperimentalCoroutinesApi::class)
-                resetReplayCache()
-                replayCache.forEach { it.closeSafely(ceCause) }
-            }
-            mutableState.value.closeSafely(ceCause)
             sideEffectChannel?.apply {
                 while (@OptIn(ExperimentalCoroutinesApi::class) !isEmpty) {
                     val result = receiveCatching()
@@ -573,7 +571,6 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 }
                 close(ceCause)
             }
-
             onClose(ceCause ?: cancellationCause)
         }
     }
@@ -582,8 +579,6 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
 
 
     // region StateFlow
-
-    override val value: State get() = mutableState.value
 
     override val replayCache: List<State> get() = mutableState.replayCache
 

@@ -1,55 +1,64 @@
-@file:Suppress("LongParameterList")
-
 package kt.fluxo.core.internal
 
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kt.fluxo.core.SideJob
-import kt.fluxo.core.dsl.StoreScopeLegacy
+import kt.fluxo.core.factory.StoreDecorator
+import kt.fluxo.core.factory.StoreDecoratorBase
 import kotlin.coroutines.CoroutineContext
 
-internal open class StoreScopeImpl<in Intent, State, SideEffect : Any>(
-    internal val job: Any?,
-    protected val guardian: InputStrategyGuardian?,
-    private val getState: () -> State,
-    private val updateStateAndGet: suspend ((State) -> State) -> State,
-    private val sendSideEffect: suspend (SideEffect) -> Unit,
-    private val sendSideJob: suspend (SideJobRequest<Intent, State, SideEffect>) -> Unit,
-    final override val subscriptionCount: StateFlow<Int>,
-    final override val coroutineContext: CoroutineContext,
-) : StoreScopeLegacy<Intent, State, SideEffect> {
+internal class StoreScopeImpl<in Intent, State, SideEffect : Any>(
+    private val guardian: InputStrategyGuardian,
+    store: StoreDecorator<Intent, State, SideEffect>,
+) : StoreDecoratorBase<Intent, State, SideEffect>(store) {
 
-    final override val state: State
+    override var value: State
         get() {
-            guardian?.checkStateAccess()
-            return getState()
+            guardian.checkStateAccess()
+            return super.value
+        }
+        set(value) {
+            guardian.checkStateUpdate()
+            super.value = value
         }
 
-    final override suspend fun updateState(function: (State) -> State): State {
-        guardian?.checkStateUpdate()
-        return updateStateAndGet(function)
+    override suspend fun updateState(function: (State) -> State): State {
+        guardian.checkStateUpdate()
+        return super.updateState(function)
     }
 
-    final override suspend fun postSideEffect(sideEffect: SideEffect) {
-        guardian?.checkPostSideEffect()
-        sendSideEffect(sideEffect)
+
+    override fun send(intent: Intent): Job {
+        guardian.checkPostIntent()
+        return super.send(intent)
     }
 
-    final override suspend fun sideJob(
+    override suspend fun emit(value: Intent) {
+        guardian.checkPostIntent()
+        super.emit(value)
+    }
+
+    override suspend fun postSideEffect(sideEffect: SideEffect) {
+        guardian.checkPostSideEffect()
+        super.postSideEffect(sideEffect)
+    }
+
+    override suspend fun sideJob(
         key: String,
         context: CoroutineContext,
         start: CoroutineStart,
         block: SideJob<Intent, State, SideEffect>,
-    ) {
-        guardian?.checkSideJob()
-        sendSideJob(SideJobRequest(key, job, context, start, block))
+    ): Job {
+        guardian.checkSideJob()
+        return super.sideJob(key = key, context = context, start = start, block = block)
     }
 
-    final override fun noOp() {
-        guardian?.checkNoOp()
+    override fun noOp() {
+        guardian.checkNoOp()
     }
 
-    internal fun close() {
-        guardian?.close()
+
+    override fun close() {
+        guardian.close()
     }
 }

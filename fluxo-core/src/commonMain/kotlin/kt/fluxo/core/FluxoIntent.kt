@@ -1,11 +1,11 @@
 package kt.fluxo.core
 
-import kt.fluxo.core.dsl.StoreScopeLegacy
+import kt.fluxo.core.dsl.StoreScope
 
 /**
  * MVVM+ Intent for the Fluxo [Container]
  */
-public typealias FluxoIntent<S, SE> = suspend StoreScopeLegacy<Nothing, S, SE>.() -> Unit
+public typealias FluxoIntent<S, SE> = suspend StoreScope<Nothing, S, SE>.() -> Unit
 
 /**
  * Convenience typealias for a Fluxo [FluxoIntent] with side effects disabled.

@@ -7,7 +7,7 @@ import kt.fluxo.core.dsl.SideJobScopeLegacy
 
 @InternalFluxoApi
 @Deprecated("For removal")
-internal class SideJobScopeImpl<in Intent, State, in SideEffect : Any>(
+internal class SideJobScopeImplLegacy<in Intent, State, in SideEffect : Any>(
     private val updateStateAndGet: suspend ((State) -> State) -> State,
     private val sendIntent: suspend (Intent) -> Job,
     private val sendSideEffect: suspend (SideEffect) -> Unit,

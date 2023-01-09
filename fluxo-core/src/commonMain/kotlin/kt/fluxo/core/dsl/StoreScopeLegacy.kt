@@ -17,6 +17,7 @@ import kotlin.internal.InlineOnly
 import kotlin.js.JsName
 
 @FluxoDsl
+@Deprecated("For removal")
 public interface StoreScopeLegacy<in Intent, State, in SideEffect : Any> : CoroutineScope {
 
     public val state: State

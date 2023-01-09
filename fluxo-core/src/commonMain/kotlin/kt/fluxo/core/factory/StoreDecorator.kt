@@ -21,7 +21,7 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
     public suspend fun onBootstrap(bootstrapper: Bootstrapper<Intent, State, SideEffect>)
 
     @CallSuper
-    public suspend fun onStart()
+    public suspend fun onStart() {}
 
 
     @CallSuper
