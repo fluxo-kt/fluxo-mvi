@@ -8,7 +8,6 @@ import kotlin.jvm.JvmField
 
 internal class SideJobRequest<out Intent, State, SideEffect : Any>(
     @JvmField val key: String,
-    @JvmField val parent: Any?,
     @JvmField val context: CoroutineContext = EmptyCoroutineContext,
     @JvmField val start: CoroutineStart = CoroutineStart.DEFAULT,
     @JvmField val block: SideJob<Intent, State, SideEffect>,

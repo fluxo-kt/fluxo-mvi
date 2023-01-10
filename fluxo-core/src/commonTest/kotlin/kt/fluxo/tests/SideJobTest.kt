@@ -9,7 +9,7 @@ import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kt.fluxo.core.dsl.accept
 import kt.fluxo.core.intent
 import kt.fluxo.core.intercept.FluxoEvent
-import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
+import kt.fluxo.core.internal.RunningSideJob.Companion.DEFAULT_SIDE_JOB
 import kt.fluxo.core.store
 import kt.fluxo.test.runUnitTest
 import kotlin.test.Test

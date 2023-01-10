@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.FluxoDsl
-import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
+import kt.fluxo.core.internal.RunningSideJob.Companion.DEFAULT_SIDE_JOB
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
@@ -18,7 +18,7 @@ import kotlin.js.JsName
 
 @FluxoDsl
 @Deprecated("For removal")
-public interface StoreScopeLegacy<in Intent, State, in SideEffect : Any> : CoroutineScope {
+public interface StoreScopeLegacy<in Intent, State, SideEffect : Any> : CoroutineScope {
 
     public val state: State
 

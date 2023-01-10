@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kt.fluxo.core.dsl.StoreScope
-import kt.fluxo.core.intercept.FluxoEvent
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
@@ -15,7 +14,7 @@ import kotlin.jvm.JvmName
 public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
 
     @JsName("start")
-    public fun StoreScope<Intent, State, SideEffect>.start(events: Flow<FluxoEvent<Intent, State, SideEffect>>) {
+    public fun StoreScope<Intent, State, SideEffect>.start(events: Flow<Any>) {
         val context = when (coroutineContext[CoroutineName]) {
             null -> EmptyCoroutineContext
             else -> CoroutineName("$name: interceptor ${this::class.simpleName}")
@@ -26,7 +25,7 @@ public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
     }
 
     @JsName("onNotify")
-    public suspend fun onNotify(event: FluxoEvent<Intent, State, SideEffect>) {
+    public suspend fun onNotify(event: Any) {
     }
 }
 
@@ -37,9 +36,9 @@ public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
 @Suppress("FunctionName", "RedundantSuppression")
 @Deprecated("For migration")
 public inline fun <I, S, SE : Any> FluxoInterceptor(
-    crossinline onEvent: (event: FluxoEvent<I, S, SE>) -> Unit,
+    crossinline onEvent: (event: Any) -> Unit,
 ): FluxoInterceptor<I, S, SE> {
     return object : FluxoInterceptor<I, S, SE> {
-        override suspend fun onNotify(event: FluxoEvent<I, S, SE>) = onEvent(event)
+        override suspend fun onNotify(event: Any) = onEvent(event)
     }
 }

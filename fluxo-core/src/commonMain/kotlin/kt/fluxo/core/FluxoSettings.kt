@@ -14,7 +14,7 @@ import kt.fluxo.core.annotation.NotThreadSafe
 import kt.fluxo.core.debug.DEBUG
 import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.internal.InputStrategyGuardian
-import kt.fluxo.core.internal.SideJobRequest.Companion.BOOTSTRAPPER_SIDE_JOB
+import kt.fluxo.core.internal.RunningSideJob.Companion.BOOTSTRAPPER_SIDE_JOB
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly

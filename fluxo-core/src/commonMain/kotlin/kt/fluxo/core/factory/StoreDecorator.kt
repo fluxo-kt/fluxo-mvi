@@ -6,7 +6,6 @@ import kt.fluxo.core.Bootstrapper
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.annotation.CallSuper
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
-import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
 import kt.fluxo.core.dsl.StoreScope
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
@@ -37,7 +36,7 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
 
     @CallSuper
     @JsName("onSideJob")
-    public suspend fun onSideJob(key: String, restartState: RestartState, sideJob: SideJob<Intent, State, SideEffect>)
+    public suspend fun onSideJob(key: String, wasRestarted: Boolean, sideJob: SideJob<Intent, State, SideEffect>)
 
 
     @CallSuper
@@ -51,10 +50,13 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
     }
 
 
+    /**
+     *
+     * @return `true` if error was handled
+     */
     @CallSuper
     @JsName("onUnhandledError")
-    public fun onUnhandledError(error: Throwable) {
-    }
+    public fun onUnhandledError(error: Throwable): Boolean = false
 
     @CallSuper
     @JsName("onClose")
@@ -74,12 +76,12 @@ public inline fun <I, S, SE : Any> StoreDecorator(
     crossinline onStateChange: Sc<I, S, SE>.(state: S) -> Unit = {},
 
     crossinline allowIntent: suspend Sc<I, S, SE>.(intent: I) -> Boolean = { true },
-    crossinline allowSideJob: suspend Sc<I, S, SE>.(key: String, RestartState, SideJob<I, S, SE>) -> Boolean = { _, _, _ -> true },
+    crossinline allowSideJob: suspend Sc<I, S, SE>.(key: String, wasRestarted: Boolean, SideJob<I, S, SE>) -> Boolean = { _, _, _ -> true },
 
     crossinline onIntentUndelivered: Sc<I, S, SE>.(intent: I, wasResent: Boolean) -> Unit = { _, _ -> },
     crossinline onSideEffectUndelivered: Sc<I, S, SE>.(sideEffect: SE, wasResent: Boolean) -> Unit = { _, _ -> },
 
-    crossinline onError: Sc<I, S, SE>.(error: Throwable) -> Unit = {},
+    crossinline onError: Sc<I, S, SE>.(error: Throwable) -> Boolean = { false },
     crossinline onClosed: suspend Sc<I, S, SE>.(cause: Throwable?) -> Unit = {},
 ): StoreDecorator<I, S, SE> {
     return object : StoreDecoratorBase<I, S, SE>(store) {
@@ -108,9 +110,9 @@ public inline fun <I, S, SE : Any> StoreDecorator(
             }
         }
 
-        override suspend fun onSideJob(key: String, restartState: RestartState, sideJob: SideJob<I, S, SE>) {
-            if (allowSideJob(key, restartState, sideJob)) {
-                super.onSideJob(key, restartState, sideJob)
+        override suspend fun onSideJob(key: String, wasRestarted: Boolean, sideJob: SideJob<I, S, SE>) {
+            if (allowSideJob(key, wasRestarted, sideJob)) {
+                super.onSideJob(key, wasRestarted, sideJob)
             }
         }
 
@@ -126,9 +128,8 @@ public inline fun <I, S, SE : Any> StoreDecorator(
         }
 
 
-        override fun onUnhandledError(error: Throwable) {
-            super.onUnhandledError(error)
-            onError(error)
+        override fun onUnhandledError(error: Throwable): Boolean {
+            return super.onUnhandledError(error) || onError(error)
         }
 
         override suspend fun onClose(cause: Throwable?) {
