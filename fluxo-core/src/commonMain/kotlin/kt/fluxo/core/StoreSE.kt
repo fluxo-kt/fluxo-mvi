@@ -17,7 +17,7 @@ public typealias Container<State, SideEffect> = StoreSE<FluxoIntent<State, SideE
  *
  * @param State State type for this [Store].
  */
-public typealias ContainerS<State> = Store<FluxoIntent<State, Nothing>, State>
+public typealias ContainerS<State> = Container<State, Nothing>
 
 
 /**

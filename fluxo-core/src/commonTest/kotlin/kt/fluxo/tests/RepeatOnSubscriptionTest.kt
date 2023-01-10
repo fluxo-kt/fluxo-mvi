@@ -3,10 +3,9 @@ package kt.fluxo.tests
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import kt.fluxo.core.dsl.ContainerHost
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
-import kt.fluxo.core.dsl.SideJobScopeLegacy
+import kt.fluxo.core.dsl.ContainerHost
 import kt.fluxo.core.intent
 import kt.fluxo.core.repeatOnSubscription
 import kt.fluxo.test.CoroutineScopeAwareTest
@@ -15,6 +14,7 @@ import kt.fluxo.test.runUnitTest
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 internal class RepeatOnSubscriptionTest : CoroutineScopeAwareTest() {
 
@@ -69,8 +69,8 @@ internal class RepeatOnSubscriptionTest : CoroutineScopeAwareTest() {
         override val container = scope.container<State, Nothing>(initialState)
 
         fun callOnSubscription(externalCall: suspend () -> Int) = intent {
-            repeatOnSubscription {
-                assertEquals(SideJobScopeLegacy.RestartState.Initial, restartState)
+            repeatOnSubscription { wasRestarted ->
+                assertFalse(wasRestarted)
                 val result = externalCall()
                 updateState { State(result) }
             }

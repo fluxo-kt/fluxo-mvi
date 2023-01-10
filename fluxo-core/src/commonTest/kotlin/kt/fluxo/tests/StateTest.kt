@@ -2,11 +2,11 @@ package kt.fluxo.tests
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.test.runTest
-import kt.fluxo.core.dsl.ContainerHost
 import kt.fluxo.core.container
+import kt.fluxo.core.dsl.ContainerHostS
 import kt.fluxo.core.intent
-import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.test.CoroutineScopeAwareTest
 import kt.fluxo.test.runUnitTest
 import kt.fluxo.test.test
@@ -89,11 +89,12 @@ internal class StateTest : CoroutineScopeAwareTest() {
     private inner class Middleware(
         initialState: TestState,
         scope: CoroutineScope = this.scope,
-        onEvent: ((event: FluxoEvent<*, TestState, *>) -> Unit)? = null,
-    ) : ContainerHost<TestState, Nothing> {
+//        onEvent: ((event: FluxoEvent<*, TestState, *>) -> Unit)? = null,
+    ) : ContainerHostS<TestState> {
         override val container = scope.container(initialState) {
             debugChecks = true
-            onEvent?.let { interceptor(it) }
+            // FIXME:
+//            onEvent?.let { interceptor(it) }
         }
 
         fun something(action: Int) = intent {
