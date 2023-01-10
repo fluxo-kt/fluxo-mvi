@@ -158,11 +158,8 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
      * [CoroutineDispatcher] or any [CoroutineContext] to run the [Store] event loop.
      */
     public var coroutineContext: CoroutineContext = Dispatchers.Default
-    @Deprecated("For removal", level = DeprecationLevel.ERROR)
-    public var intentContext: CoroutineContext = EmptyCoroutineContext
+
     public var sideJobsContext: CoroutineContext = EmptyCoroutineContext
-    @Deprecated("For removal", level = DeprecationLevel.ERROR)
-    public var interceptorContext: CoroutineContext = EmptyCoroutineContext
 
     /**
      * If false the [Store] will offload everything possible to the provided [scope], not trying to optimize performance.

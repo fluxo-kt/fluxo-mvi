@@ -35,9 +35,7 @@ public final class kt/fluxo/core/FluxoSettings {
 	public final fun getDebugChecks ()Z
 	public final fun getExceptionHandler ()Lkotlinx/coroutines/CoroutineExceptionHandler;
 	public final fun getInputStrategy ()Lkt/fluxo/core/InputStrategy;
-	public final fun getIntentContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getIntentFilter ()Lkotlin/jvm/functions/Function2;
-	public final fun getInterceptorContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getInterceptors ()Ljava/util/List;
 	public final fun getName ()Ljava/lang/String;
 	public final fun getScope ()Lkotlinx/coroutines/CoroutineScope;
@@ -53,9 +51,7 @@ public final class kt/fluxo/core/FluxoSettings {
 	public final fun setDebugChecks (Z)V
 	public final fun setExceptionHandler (Lkotlinx/coroutines/CoroutineExceptionHandler;)V
 	public final fun setInputStrategy (Lkt/fluxo/core/InputStrategy;)V
-	public final fun setIntentContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setIntentFilter (Lkotlin/jvm/functions/Function2;)V
-	public final fun setInterceptorContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setLazy (Z)V
 	public final fun setName (Ljava/lang/String;)V
 	public final fun setOptimized (Z)V

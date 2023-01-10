@@ -5,10 +5,10 @@
     <ID>ForbiddenComment:Debug.kt$// TODO: Split debug and release version</ID>
     <ID>ForbiddenComment:DebugIntentWrapper.kt$// TODO: No AccessibleObject.canAccess method on Android, but should we use it for Java 9+?</ID>
     <ID>ForbiddenComment:DebugIntentWrapper.kt$// TODO: Only for test/debug variants?</ID>
-    <ID>ForbiddenComment:FluxoStore.kt$FluxoStore$// FIXME: Test case when interceptorScope is already closed here</ID>
+    <ID>ForbiddenComment:FluxoStore.kt$FluxoStore$// TODO: Can we awoid lambda creation?</ID>
     <ID>ForbiddenComment:FluxoStore.kt$FluxoStore$// TODO: Generate name from Store host with reflection in debug mode?</ID>
-    <ID>ForbiddenComment:FluxoStore.kt$FluxoStore$// TODO: we may need to close nextValue here</ID>
-    <ID>ForbiddenComment:Migration.kt$// TODO: inline modifier causes NPE in InlineParameterChecker</ID>
+    <ID>ForbiddenComment:FluxoStore.kt$FluxoStore$// TODO: Test if job awaits for all potential children completions when join</ID>
+    <ID>ForbiddenComment:Store.kt$Store$// @SubclassOptInRequired(ExperimentalFluxoApi::class) // TODO: Kotlin API version 1.8</ID>
     <ID>ForbiddenComment:ThreadInfo.kt$// TODO: Use JVM version</ID>
     <ID>TooManyFunctions:InputStrategyGuardian.kt$InputStrategyGuardian</ID>
   </CurrentIssues>

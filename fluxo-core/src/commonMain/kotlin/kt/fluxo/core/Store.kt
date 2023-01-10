@@ -31,7 +31,7 @@ import kotlin.jvm.JvmSynthetic
  * @see Container for the state store with side effects
  */
 @ThreadSafe
-//@SubclassOptInRequired(ExperimentalFluxoApi::class) // TODO: Kotlin API version 1.8
+// @SubclassOptInRequired(ExperimentalFluxoApi::class) // TODO: Kotlin API version 1.8
 public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<Intent>, CoroutineScope, Closeable {
 
     /**
@@ -58,7 +58,7 @@ public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<I
      */
     @CallSuper
     @JsName("send")
-    public fun send(intent: Intent)
+    public fun send(intent: Intent): Job
 
     /**
      * Queues an [intent][value] for processing.
