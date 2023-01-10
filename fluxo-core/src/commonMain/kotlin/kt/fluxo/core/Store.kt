@@ -58,6 +58,7 @@ public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<I
      */
     @CallSuper
     @JsName("send")
+    @Throws(FluxoClosedException::class)
     public fun send(intent: Intent): Job
 
     /**
