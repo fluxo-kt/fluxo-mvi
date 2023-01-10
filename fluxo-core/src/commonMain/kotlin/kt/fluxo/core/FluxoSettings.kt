@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kt.fluxo.core.annotation.FluxoDsl
 import kt.fluxo.core.annotation.NotThreadSafe
 import kt.fluxo.core.debug.DEBUG
-import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.internal.InputStrategyGuardian
 import kt.fluxo.core.internal.RunningSideJob.Companion.BOOTSTRAPPER_SIDE_JOB
 import kotlin.coroutines.CoroutineContext
@@ -95,7 +94,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
         onStart(bootstrapper)
     }
 
-    /** [bootstrapper] convenience method when you need only a [sideJob][kt.fluxo.core.dsl.StoreScopeLegacy.sideJob] */
+    /** [bootstrapper] convenience method when you need only a [sideJob][kt.fluxo.core.dsl.StoreScope.sideJob] */
     @JsName("bootstrapperJob")
     public fun bootstrapperJob(
         key: String = BOOTSTRAPPER_SIDE_JOB,
@@ -115,24 +114,6 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
      */
     @Deprecated("For migration")
     public val interceptors: MutableList<FluxoInterceptor<Intent, State, SideEffect>> = mutableListOf()
-
-    /** [interceptors] convenience method */
-    @InlineOnly
-    @JsName("interceptor")
-    @Deprecated("For migration")
-    @Suppress("DeprecatedCallableAddReplaceWith")
-    public inline fun interceptor(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
-        interceptors.add(FluxoInterceptor(onEvent))
-    }
-
-    /** [interceptors] convenience method */
-    @InlineOnly
-    @JsName("onEvent")
-    @Deprecated("For migration")
-    @Suppress("DeprecatedCallableAddReplaceWith")
-    public inline fun onEvent(crossinline onEvent: (event: FluxoEvent<Intent, State, SideEffect>) -> Unit) {
-        interceptor(onEvent)
-    }
 
     /**
      * If you need to filter out some [Intent]s.

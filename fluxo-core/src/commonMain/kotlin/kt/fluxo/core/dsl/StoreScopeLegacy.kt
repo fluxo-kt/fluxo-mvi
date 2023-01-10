@@ -15,6 +15,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
+import kotlin.jvm.JvmSynthetic
 
 @FluxoDsl
 @Deprecated("For removal")
@@ -64,6 +65,7 @@ public interface StoreScopeLegacy<in Intent, State, SideEffect : Any> : Coroutin
     // region Convenience helpers
 
     @InlineOnly
+    @JvmSynthetic
     @JsName("launch")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",
@@ -73,6 +75,7 @@ public interface StoreScopeLegacy<in Intent, State, SideEffect : Any> : Coroutin
     public fun launch(key: String = DEFAULT_SIDE_JOB, block: SideJob<Intent, State, SideEffect>): Unit = throw NotImplementedError()
 
     @InlineOnly
+    @JvmSynthetic
     @JsName("async")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",
@@ -91,6 +94,7 @@ public interface StoreScopeLegacy<in Intent, State, SideEffect : Any> : Coroutin
      * Consider to use [updateState] instead.
      */
     @InlineOnly
+    @JvmSynthetic
     @JsName("reduce")
     @Deprecated(
         message = "Please use the updateState instead",

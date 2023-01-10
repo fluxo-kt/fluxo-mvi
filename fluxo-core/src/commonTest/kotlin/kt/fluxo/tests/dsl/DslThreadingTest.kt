@@ -28,7 +28,7 @@ internal class DslThreadingTest : CoroutineScopeAwareTest() {
     @IgnoreNativeAndJs
     fun blocking_intent_with_context_switch_does_not_block_the_reducer() = runBlocking {
         val action = Random.nextInt()
-        val testFlowObserver = middleware.container.stateFlow.test()
+        val testFlowObserver = middleware.container.test()
 
         middleware.backgroundIntent()
 
@@ -46,7 +46,7 @@ internal class DslThreadingTest : CoroutineScopeAwareTest() {
     @IgnoreNativeAndJs
     fun suspending_intent_does_not_block_the_reducer() = runBlocking {
         val action = Random.nextInt()
-        val testFlowObserver = middleware.container.stateFlow.test()
+        val testFlowObserver = middleware.container.test()
 
         middleware.suspendingIntent()
         withTimeout(TIMEOUT) {
@@ -63,7 +63,7 @@ internal class DslThreadingTest : CoroutineScopeAwareTest() {
     @IgnoreNativeAndJs
     fun blocking_intent_without_context_switch_does_not_block_the_reducer() = runBlocking {
         val action = Random.nextInt()
-        val testFlowObserver = middleware.container.stateFlow.test()
+        val testFlowObserver = middleware.container.test()
 
         middleware.blockingIntent()
 
@@ -80,7 +80,7 @@ internal class DslThreadingTest : CoroutineScopeAwareTest() {
     @Test
     @IgnoreNativeAndJs
     fun blocking_reducer_does_not_block_an_intent() = runBlocking {
-        val testFlowObserver = middleware.container.stateFlow.test()
+        val testFlowObserver = middleware.container.test()
 
         middleware.blockingReducer()
         withTimeout(TIMEOUT) {

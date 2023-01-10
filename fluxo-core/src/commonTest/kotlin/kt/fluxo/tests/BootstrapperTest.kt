@@ -1,16 +1,13 @@
 package kt.fluxo.tests
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.sync.Mutex
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
-import kt.fluxo.core.dsl.SideJobScopeLegacy.RestartState
-import kt.fluxo.core.intercept.FluxoEvent
 import kt.fluxo.core.repeatOnSubscription
 import kt.fluxo.test.CoroutineScopeAwareTest
 import kt.fluxo.test.IgnoreJs
@@ -20,7 +17,6 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -86,7 +82,7 @@ internal class BootstrapperTest : CoroutineScopeAwareTest() {
             debugChecks = true
             @Suppress("DEPRECATION")
             onCreate {
-                postIntent {
+                send {
                     hadIntent = true
                 }.join()
             }
@@ -100,12 +96,12 @@ internal class BootstrapperTest : CoroutineScopeAwareTest() {
         val store = scope.container(INIT) {
             debugChecks = true
             bootstrapper = {
-                assertEquals(INIT, state)
+                assertEquals(INIT, value)
                 updateState { "$it.update" }
             }
         }
         assertNotNull(store.start(), "Expected Job for explicit lazy start").join()
-        assertEquals("$INIT.update", store.state)
+        assertEquals("$INIT.update", store.value)
     }
 
     @Test
@@ -123,48 +119,46 @@ internal class BootstrapperTest : CoroutineScopeAwareTest() {
     fun b_side_job() = runUnitTest {
         val store = container<String, String>(INIT) {
             debugChecks = true
-            bootstrapperJob {
-                assertEquals(INIT, currentStateWhenStarted)
-                assertEquals(RestartState.Initial, restartState)
-                postIntent {
-                    updateState { "$it.sideJob" }
-                }
+            bootstrapperJob { wasRestarted ->
+                assertEquals(INIT, value)
+                assertFalse(wasRestarted)
+                emit { updateState { "$it.sideJob" } }
             }
         }
-        assertEquals("$INIT.sideJob", store.stateFlow.first { it != INIT })
+        assertEquals("$INIT.sideJob", store.first { it != INIT })
         store.closeAndWait()
     }
 
-    @Test
-    fun b_cancellation() = runUnitTest {
-        val def = CompletableDeferred<FluxoEvent<*, *, *>>()
-        scope.container(INIT) {
-            debugChecks = false
-            bootstrapper = {
-                cancel()
-            }
-            onEvent {
-                if (it is FluxoEvent.BootstrapperCancelled) {
-                    def.complete(it)
-                }
-            }
-        }.start()
-        assertIs<FluxoEvent.BootstrapperCancelled<*, *, *>>(def.await())
-    }
+//    @Test
+//    fun b_cancellation() = runUnitTest {
+//        val def = CompletableDeferred<FluxoEvent<*, *, *>>()
+//        scope.container(INIT) {
+//            debugChecks = false
+//            bootstrapper = {
+//                cancel()
+//            }
+//            onEvent {
+//                if (it is FluxoEvent.BootstrapperCancelled) {
+//                    def.complete(it)
+//                }
+//            }
+//        }.start()
+//        assertIs<FluxoEvent.BootstrapperCancelled<*, *, *>>(def.await())
+//    }
 
     @Test
     fun b_repeat_on_subscription() = runUnitTest {
         val store = container<String, String>(INIT) {
             onStart {
                 var i = 0
-                repeatOnSubscription(stopTimeout = 0) {
-                    assertEquals(RestartState.Initial, restartState)
+                repeatOnSubscription(stopTimeout = 0) { wasRestarted ->
+                    assertFalse(wasRestarted)
                     updateState { "update${i++}" }
                 }
             }
         }
-        assertContentEquals(listOf(INIT, "update0"), store.stateFlow.take(2).toList())
-        assertContentEquals(listOf("update0", "update1"), store.stateFlow.take(2).toList())
+        assertContentEquals(listOf(INIT, "update0"), store.take(2).toList())
+        assertContentEquals(listOf("update0", "update1"), store.take(2).toList())
         store.closeAndWait()
     }
 }

@@ -168,7 +168,7 @@ internal class InputStrategyTest : CoroutineScopeAwareTest() {
             bootstrapper = intent
         }
         container.intent(intent)
-        container.stateFlow.first { it == 2 }
+        container.first { it == 2 }
         container.close()
     }
 }

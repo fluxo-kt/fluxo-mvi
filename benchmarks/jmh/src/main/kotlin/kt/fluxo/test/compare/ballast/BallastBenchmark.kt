@@ -46,7 +46,7 @@ internal object BallastBenchmark {
 
         return runBlocking {
             val launchDef = launchCommon(IntentIncrement.Increment) { vm.send(it) }
-            consumeCommon(vm.observeStates(), launchDef, job, dispatcher)
+            vm.observeStates().consumeCommon(launchDef, job, dispatcher)
         }
     }
 }

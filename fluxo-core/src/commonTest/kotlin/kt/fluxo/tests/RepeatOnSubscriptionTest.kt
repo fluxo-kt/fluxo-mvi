@@ -33,13 +33,13 @@ internal class RepeatOnSubscriptionTest : CoroutineScopeAwareTest() {
                     }
                 }
 
-                assertEquals(initialState, container.state)
+                assertEquals(initialState, container.value)
 
-                val states = container.stateFlow.take(2).toList()
+                val states = container.take(2).toList()
                 assertContentEquals(listOf(initialState, State(1)), states)
 
                 delay(stopTimeout)
-                val states2 = container.stateFlow.take(2).toList()
+                val states2 = container.take(2).toList()
                 assertContentEquals(listOf(State(1), State(2)), states2)
 
                 container.closeAndWait()
@@ -53,13 +53,13 @@ internal class RepeatOnSubscriptionTest : CoroutineScopeAwareTest() {
     fun test_does_not_hang_when_using_repeatOnSubscription() = runUnitTest {
         val host = TestMiddleware()
 
-        assertEquals(initialState, host.container.state)
+        assertEquals(initialState, host.container.value)
 
         host.callOnSubscription { 42 }
 
-        assertEquals(initialState, host.container.state)
+        assertEquals(initialState, host.container.value)
 
-        val states = host.container.stateFlow.take(2).toList()
+        val states = host.container.take(2).toList()
         assertContentEquals(listOf(initialState, State(42)), states)
 
         host.container.closeAndWait()

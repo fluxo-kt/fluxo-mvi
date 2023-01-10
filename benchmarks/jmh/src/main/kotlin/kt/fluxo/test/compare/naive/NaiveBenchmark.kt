@@ -11,7 +11,7 @@ internal object NaiveBenchmark {
         val state = MutableStateFlow(0)
         runBlocking {
             val launchDef = launchCommon(Unit) { state.getAndAdd(1) }
-            consumeCommon(state, launchDef)
+            state.consumeCommon(launchDef)
         }
         return state.value
     }

@@ -17,6 +17,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
+import kotlin.jvm.JvmSynthetic
 
 /**
  * Mutable [Store] scope for handlers, decorators and
@@ -65,6 +66,7 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : StoreSE<Intent
 
     /** @see updateState */
     @InlineOnly
+    @JvmSynthetic
     @JsName("reduce")
     @Deprecated(
         message = "Please use updateState instead",
@@ -76,6 +78,7 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : StoreSE<Intent
 
     /** @see sideJob */
     @InlineOnly
+    @JvmSynthetic
     @JsName("launch")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",
@@ -90,6 +93,7 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : StoreSE<Intent
 
     /** @see sideJob */
     @InlineOnly
+    @JvmSynthetic
     @JsName("async")
     @Deprecated(
         message = "Please use the sideJob function to launch long running jobs",

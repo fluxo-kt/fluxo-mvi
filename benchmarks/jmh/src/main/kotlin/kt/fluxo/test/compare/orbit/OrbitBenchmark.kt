@@ -23,7 +23,7 @@ internal object OrbitBenchmark {
         runBlocking {
             val intent: suspend SimpleSyntax<Int, Nothing>.() -> Unit = { reduce { state + 1 } }
             val launchDef = launchCommon(intent) { host.intent(transformer = it) }
-            consumeCommon(host.container.stateFlow, launchDef, job, dispatcher)
+            host.container.stateFlow.consumeCommon(launchDef, job, dispatcher)
         }
 
         return host.container.stateFlow.value

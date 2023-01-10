@@ -28,7 +28,7 @@ internal class SideJobTest {
                     assertEquals(RestartState.Initial, restartState)
                     assertEquals("a", currentStateWhenStarted)
                     updateState { if (it == "a") "b" else it }
-                    postIntent("b")
+                    this.send("b")
                 }
 
                 "b" -> sideJob {
@@ -39,7 +39,7 @@ internal class SideJobTest {
             }
         })
 
-        store.stateFlow.test {
+        store.test {
             assertEquals("a", awaitItem())
 
             @Suppress("DEPRECATION")
@@ -70,7 +70,7 @@ internal class SideJobTest {
                 secondIntent()
             }
         }
-        store.stateFlow.test {
+        store.test {
             assertEquals("a", awaitItem())
             assertEquals("b", awaitItem())
             assertEquals("c", awaitItem())
@@ -140,7 +140,7 @@ internal class SideJobTest {
                 updateState { "b" }
             }
         }
-        store.stateFlow.test {
+        store.test {
             assertEquals("init", awaitItem())
             assertEquals("b", awaitItem())
         }

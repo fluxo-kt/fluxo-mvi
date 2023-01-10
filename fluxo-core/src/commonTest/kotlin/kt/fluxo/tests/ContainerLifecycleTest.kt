@@ -16,7 +16,7 @@ internal class ContainerLifecycleTest : CoroutineScopeAwareTest() {
     fun onCreate_called_once_after_connecting_to_container() = runTest {
         val initialState = TestState()
         val middleware = Middleware(initialState)
-        val testStateObserver = middleware.container.stateFlow.test()
+        val testStateObserver = middleware.container.test()
         val testSideEffectObserver = middleware.container.sideEffectFlow.test()
 
         testStateObserver.awaitCount(1)
@@ -33,7 +33,7 @@ internal class ContainerLifecycleTest : CoroutineScopeAwareTest() {
         override val container = scope.container<TestState, String>(initialState) {
             @Suppress("DEPRECATION")
             onCreate {
-                onCreate(state)
+                onCreate(value)
             }
         }
 

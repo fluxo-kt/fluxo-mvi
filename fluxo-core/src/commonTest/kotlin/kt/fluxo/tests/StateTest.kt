@@ -23,9 +23,9 @@ internal class StateTest : CoroutineScopeAwareTest() {
     fun initial_state_emitted_on_connection() {
         val initialState = TestState()
         val middleware = Middleware(initialState)
-        assertEquals(initialState, middleware.container.state)
+        assertEquals(initialState, middleware.container.value)
 
-        val testStateObserver = middleware.container.stateFlow.test()
+        val testStateObserver = middleware.container.test()
         assertContentEquals(listOf(initialState), testStateObserver.values)
     }
 
@@ -34,12 +34,12 @@ internal class StateTest : CoroutineScopeAwareTest() {
     fun latest_state_emitted_on_connection() = runTest {
         val initialState = TestState()
         val middleware = Middleware(initialState)
-        val testStateObserver = middleware.container.stateFlow.test()
+        val testStateObserver = middleware.container.test()
         val action = Random.nextInt()
         middleware.something(action)
         testStateObserver.awaitCount(2) // block until the state updated
 
-        val testStateObserver2 = middleware.container.stateFlow.test()
+        val testStateObserver2 = middleware.container.test()
         testStateObserver2.awaitCount(1)
 
         assertContentEquals(listOf(initialState, TestState(action)), testStateObserver.values)
@@ -53,13 +53,13 @@ internal class StateTest : CoroutineScopeAwareTest() {
         val initialState = TestState()
         val middleware = Middleware(initialState)
         val action = Random.nextInt()
-        val testStateObserver = middleware.container.stateFlow.test()
+        val testStateObserver = middleware.container.test()
 
         middleware.something(action)
 
         testStateObserver.awaitCount(2)
 
-        assertEquals(testStateObserver.values.last(), middleware.container.state)
+        assertEquals(testStateObserver.values.last(), middleware.container.value)
 
         middleware.container.close()
     }

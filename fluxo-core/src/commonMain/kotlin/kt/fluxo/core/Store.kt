@@ -13,6 +13,7 @@ import kt.fluxo.core.annotation.ThreadSafe
 import kt.fluxo.core.internal.Closeable
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
+import kotlin.jvm.JvmSynthetic
 
 /**
  * The core of the Fluxo MVI. Represents a state store with its input and outputs.
@@ -30,7 +31,7 @@ import kotlin.js.JsName
  * @see Container for the state store with side effects
  */
 @ThreadSafe
-@SubclassOptInRequired(ExperimentalFluxoApi::class)
+//@SubclassOptInRequired(ExperimentalFluxoApi::class) // TODO: Kotlin API version 1.8
 public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<Intent>, CoroutineScope, Closeable {
 
     /**
@@ -96,6 +97,7 @@ public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<I
      * @see state
      */
     @InlineOnly
+    @get:JvmSynthetic
     @Deprecated("Use store itself", ReplaceWith("this"), level = DeprecationLevel.ERROR)
     public val stateFlow: StateFlow<State> get() = this
 
@@ -106,8 +108,16 @@ public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<I
      * @see stateFlow
      */
     @InlineOnly
+    @get:JvmSynthetic
     @Deprecated("Use value directly", ReplaceWith("value"), level = DeprecationLevel.ERROR)
     public val state: State get() = value
+
+    /** Old Fluxo API migration */
+    @InlineOnly
+    @JvmSynthetic
+    @Deprecated("Use send", replaceWith = ReplaceWith("send(intent)"), level = DeprecationLevel.ERROR)
+    @JsName("postIntent")
+    public fun postIntent(intent: Intent): Job = send(intent)
 
     // endregion
 }

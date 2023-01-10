@@ -11,7 +11,6 @@ import kt.fluxo.core.FluxoSettings
 import kt.fluxo.core.Store
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kotlin.internal.InlineOnly
-import kotlin.jvm.JvmSynthetic
 
 @InlineOnly
 @Deprecated(message = "Please use the container instead", replaceWith = ReplaceWith("container"))
@@ -19,15 +18,13 @@ public inline val <S, SE : Any> ContainerHost<S, SE>.store get() = container
 
 
 @InlineOnly
-@JvmSynthetic
 @ExperimentalFluxoApi
 @Deprecated(
     message = "Please use the send instead",
     level = DeprecationLevel.ERROR,
     replaceWith = ReplaceWith("send(intent)"),
 )
-// TODO: inline modifier causes NPE in InlineParameterChecker
-public suspend fun <S, SE : Any> Container<S, SE>.orbit(intent: FluxoIntent<S, SE>) = emit(intent)
+public suspend inline fun <S, SE : Any> Container<S, SE>.orbit(noinline intent: FluxoIntent<S, SE>) = emit(intent)
 
 @InlineOnly
 @Deprecated(
@@ -35,7 +32,7 @@ public suspend fun <S, SE : Any> Container<S, SE>.orbit(intent: FluxoIntent<S, S
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("send(intent)"),
 )
-public inline fun <I, S, SE : Any> Store<I, S, SE>.accept(intent: I): Job = send(intent)
+public inline fun <I> Store<I, *>.accept(intent: I): Job = send(intent)
 
 
 @InlineOnly
@@ -44,7 +41,7 @@ public inline fun <I, S, SE : Any> Store<I, S, SE>.accept(intent: I): Job = send
     replaceWith = ReplaceWith("intentContext"),
 )
 @OptIn(ExperimentalStdlibApi::class)
-public inline var <I, S, SE : Any> FluxoSettings<I, S, SE>.intentDispatcher: CoroutineDispatcher
+public inline var FluxoSettings<*, *, *>.intentDispatcher: CoroutineDispatcher
     get() = coroutineContext[CoroutineDispatcher] ?: scope?.coroutineContext?.get(CoroutineDispatcher) ?: Dispatchers.Default
     set(value) {
         coroutineContext = value

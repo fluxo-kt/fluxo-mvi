@@ -33,7 +33,7 @@ internal object MviKotlinBenchmark {
         }
         runBlocking {
             val launchDef = launchCommon(IntentIncrement.Increment) { store.accept(it) }
-            consumeCommon(store.states, launchDef)
+            store.states.consumeCommon(launchDef)
         }
         store.dispose()
         return store.state
