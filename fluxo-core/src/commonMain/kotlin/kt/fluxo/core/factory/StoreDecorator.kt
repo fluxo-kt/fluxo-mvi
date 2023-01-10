@@ -72,15 +72,11 @@ public inline fun <I, S, SE : Any> StoreDecorator(
     store: StoreDecorator<I, S, SE>,
     crossinline allowBootstrap: suspend Sc<I, S, SE>.(Bootstrapper<I, S, SE>) -> Boolean = { true },
     crossinline onStarted: suspend Sc<I, S, SE>.() -> Unit = {},
-
     crossinline onStateChange: Sc<I, S, SE>.(state: S) -> Unit = {},
-
     crossinline allowIntent: suspend Sc<I, S, SE>.(intent: I) -> Boolean = { true },
     crossinline allowSideJob: suspend Sc<I, S, SE>.(key: String, wasRestarted: Boolean, SideJob<I, S, SE>) -> Boolean = { _, _, _ -> true },
-
     crossinline onIntentUndelivered: Sc<I, S, SE>.(intent: I, wasResent: Boolean) -> Unit = { _, _ -> },
     crossinline onSideEffectUndelivered: Sc<I, S, SE>.(sideEffect: SE, wasResent: Boolean) -> Unit = { _, _ -> },
-
     crossinline onError: Sc<I, S, SE>.(error: Throwable) -> Boolean = { false },
     crossinline onClosed: suspend Sc<I, S, SE>.(cause: Throwable?) -> Unit = {},
 ): StoreDecorator<I, S, SE> {

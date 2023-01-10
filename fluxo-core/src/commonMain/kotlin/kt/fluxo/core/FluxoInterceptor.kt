@@ -35,9 +35,7 @@ public interface FluxoInterceptor<Intent, State, SideEffect : Any> {
 @JvmName("create")
 @Suppress("FunctionName", "RedundantSuppression")
 @Deprecated("For migration")
-public inline fun <I, S, SE : Any> FluxoInterceptor(
-    crossinline onEvent: (event: Any) -> Unit,
-): FluxoInterceptor<I, S, SE> {
+public inline fun <I, S, SE : Any> FluxoInterceptor(crossinline onEvent: (event: Any) -> Unit): FluxoInterceptor<I, S, SE> {
     return object : FluxoInterceptor<I, S, SE> {
         override suspend fun onNotify(event: Any) = onEvent(event)
     }

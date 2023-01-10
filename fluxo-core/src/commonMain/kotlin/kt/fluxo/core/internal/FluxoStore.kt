@@ -551,7 +551,8 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         }
         launch(Dispatchers.Unconfined + Job(), start = CoroutineStart.UNDISPATCHED) {
             sideEffectChannel?.apply {
-                while (@OptIn(ExperimentalCoroutinesApi::class) !isEmpty) {
+                @OptIn(ExperimentalCoroutinesApi::class)
+                while (!isEmpty) {
                     val result = receiveCatching()
                     if (result.isClosed) break
                     result.getOrNull()?.closeSafely(cause)

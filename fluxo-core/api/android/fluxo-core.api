@@ -1,23 +1,20 @@
-public abstract interface class kt/fluxo/core/ContainerHost {
-	public abstract fun getContainer ()Lkt/fluxo/core/Store;
-}
-
-public final class kt/fluxo/core/FluxoClosedException : java/lang/IllegalStateException, kt/fluxo/core/FluxoException {
+public final class kt/fluxo/core/FluxoClosedException : java/util/concurrent/CancellationException, kt/fluxo/core/FluxoException {
+	public fun getCause ()Ljava/lang/Throwable;
 }
 
 public final class kt/fluxo/core/FluxoDsl {
 	public static final fun closeStoreAndWait (Lkt/fluxo/core/Store;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun repeatOnSubscriptionIn (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun repeatOnSubscriptionIn$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;JLkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun repeatOnSubscriptionIn (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;JLkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun repeatOnSubscriptionIn$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;JLkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class kt/fluxo/core/FluxoException {
 }
 
 public abstract interface class kt/fluxo/core/FluxoInterceptor {
-	public fun onNotify (Lkt/fluxo/core/intercept/FluxoEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun onNotify$suspendImpl (Lkt/fluxo/core/FluxoInterceptor;Lkt/fluxo/core/intercept/FluxoEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun start (Lkt/fluxo/core/dsl/InterceptorScope;Lkotlinx/coroutines/flow/Flow;)V
+	public fun onNotify (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun onNotify$suspendImpl (Lkt/fluxo/core/FluxoInterceptor;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start (Lkt/fluxo/core/dsl/StoreScope;Lkotlinx/coroutines/flow/Flow;)V
 }
 
 public final class kt/fluxo/core/FluxoInterceptorKt {
@@ -30,12 +27,12 @@ public class kt/fluxo/core/FluxoRuntimeException : java/lang/RuntimeException, k
 public final class kt/fluxo/core/FluxoSettings {
 	public static final field DEFAULT Lkt/fluxo/core/FluxoSettings;
 	public static final field Factory Lkt/fluxo/core/FluxoSettings$Factory;
-	public final fun bootstrapperJob (Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function2;)V
-	public static synthetic fun bootstrapperJob$default (Lkt/fluxo/core/FluxoSettings;Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun bootstrapperJob (Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;)V
+	public static synthetic fun bootstrapperJob$default (Lkt/fluxo/core/FluxoSettings;Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
 	public final fun copy ()Lkt/fluxo/core/FluxoSettings;
 	public final fun getBootstrapper ()Lkotlin/jvm/functions/Function2;
+	public final fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getDebugChecks ()Z
-	public final fun getEventLoopContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getExceptionHandler ()Lkotlinx/coroutines/CoroutineExceptionHandler;
 	public final fun getInputStrategy ()Lkt/fluxo/core/InputStrategy;
 	public final fun getIntentContext ()Lkotlin/coroutines/CoroutineContext;
@@ -49,11 +46,11 @@ public final class kt/fluxo/core/FluxoSettings {
 	public final fun getSideJobsContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun isCloseOnExceptions ()Z
 	public final fun isLazy ()Z
-	public final fun isOffloadAllToScope ()Z
+	public final fun isOptimized ()Z
 	public final fun setBootstrapper (Lkotlin/jvm/functions/Function2;)V
 	public final fun setCloseOnExceptions (Z)V
+	public final fun setCoroutineContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setDebugChecks (Z)V
-	public final fun setEventLoopContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setExceptionHandler (Lkotlinx/coroutines/CoroutineExceptionHandler;)V
 	public final fun setInputStrategy (Lkt/fluxo/core/InputStrategy;)V
 	public final fun setIntentContext (Lkotlin/coroutines/CoroutineContext;)V
@@ -61,7 +58,7 @@ public final class kt/fluxo/core/FluxoSettings {
 	public final fun setInterceptorContext (Lkotlin/coroutines/CoroutineContext;)V
 	public final fun setLazy (Z)V
 	public final fun setName (Ljava/lang/String;)V
-	public final fun setOffloadAllToScope (Z)V
+	public final fun setOptimized (Z)V
 	public final fun setScope (Lkotlinx/coroutines/CoroutineScope;)V
 	public final fun setSideEffectBufferSize (I)V
 	public final fun setSideEffectsStrategy (Lkt/fluxo/core/SideEffectsStrategy;)V
@@ -114,25 +111,18 @@ public final class kt/fluxo/core/SideEffectsStrategy$SHARE : kt/fluxo/core/SideE
 	public final fun getReplay ()I
 }
 
-public abstract interface class kt/fluxo/core/Store : java/io/Closeable {
-	public abstract fun close ()V
-	public abstract fun getEventsFlow ()Lkotlinx/coroutines/flow/Flow;
+public abstract interface class kt/fluxo/core/Store : java/io/Closeable, kotlinx/coroutines/CoroutineScope, kotlinx/coroutines/flow/FlowCollector, kotlinx/coroutines/flow/StateFlow {
+	public fun close ()V
+	public abstract fun emit (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getName ()Ljava/lang/String;
-	public abstract fun getSideEffectFlow ()Lkotlinx/coroutines/flow/Flow;
-	public fun getState ()Ljava/lang/Object;
-	public abstract fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun isActive ()Z
-	public abstract fun send (Ljava/lang/Object;)V
-	public abstract fun sendAsync (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getSubscriptionCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public synthetic fun postIntent (Ljava/lang/Object;)Lkotlinx/coroutines/Job;
+	public abstract fun send (Ljava/lang/Object;)Lkotlinx/coroutines/Job;
 	public abstract fun start ()Lkotlinx/coroutines/Job;
 }
 
-public abstract interface class kt/fluxo/core/StoreFactory {
-	public abstract fun create ()Lkt/fluxo/core/Store;
-}
-
-public abstract interface class kt/fluxo/core/StoreHost {
-	public abstract fun getStore ()Lkt/fluxo/core/Store;
+public abstract interface class kt/fluxo/core/StoreSE : kt/fluxo/core/Store {
+	public abstract fun getSideEffectFlow ()Lkotlinx/coroutines/flow/Flow;
 }
 
 public abstract interface annotation class kt/fluxo/core/annotation/ExperimentalFluxoApi : java/lang/annotation/Annotation {
@@ -153,198 +143,85 @@ public class kt/fluxo/core/data/GuaranteedEffect : java/io/Closeable {
 	public final fun resend ()V
 }
 
-public abstract interface class kt/fluxo/core/dsl/BootstrapperScope : kt/fluxo/core/dsl/StoreScope {
-	public abstract fun postIntent (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class kt/fluxo/core/dsl/ContainerHost {
+	public abstract fun getContainer ()Lkt/fluxo/core/StoreSE;
 }
 
-public abstract interface class kt/fluxo/core/dsl/InterceptorScope : kotlinx/coroutines/CoroutineScope {
-	public abstract fun getStoreName ()Ljava/lang/String;
-	public abstract fun postRequest (Lkt/fluxo/core/intercept/StoreRequest;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class kt/fluxo/core/dsl/MigrationKt {
-	public static final synthetic fun orbit (Lkt/fluxo/core/Store;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public abstract interface class kt/fluxo/core/dsl/SideJobScope : kotlinx/coroutines/CoroutineScope {
-	public abstract fun getCurrentStateWhenStarted ()Ljava/lang/Object;
-	public abstract fun getRestartState ()Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public abstract fun postIntent (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+public abstract interface class kt/fluxo/core/dsl/StoreScope : kt/fluxo/core/StoreSE {
+	public synthetic fun async (Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
+	public static synthetic fun async$default (Lkt/fluxo/core/dsl/StoreScope;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
+	public abstract fun getValue ()Ljava/lang/Object;
+	public synthetic fun launch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
+	public static synthetic fun launch$default (Lkt/fluxo/core/dsl/StoreScope;Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
+	public fun noOp ()V
 	public abstract fun postSideEffect (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun updateState (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class kt/fluxo/core/dsl/SideJobScope$RestartState : java/lang/Enum {
-	public static final field Initial Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public static final field Restarted Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public static fun valueOf (Ljava/lang/String;)Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public static fun values ()[Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-}
-
-public abstract interface class kt/fluxo/core/dsl/StoreScope : kotlinx/coroutines/CoroutineScope {
-	public static final field Companion Lkt/fluxo/core/dsl/StoreScope$Companion;
-	public fun async (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
-	public static synthetic fun async$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
-	public abstract fun getState ()Ljava/lang/Object;
-	public abstract fun getSubscriptionCount ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun launch (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
-	public static synthetic fun launch$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
-	public abstract fun noOp ()V
-	public abstract fun postSideEffect (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun reduce (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun reduce (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun reduce$suspendImpl (Lkt/fluxo/core/dsl/StoreScope;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun sideJob (Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun sideJob$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun setValue (Ljava/lang/Object;)V
+	public abstract fun sideJob (Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun sideJob$default (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public abstract fun updateState (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class kt/fluxo/core/dsl/StoreScope$Companion {
+public final class kt/fluxo/core/factory/FluxoStoreFactory : kt/fluxo/core/factory/StoreFactory {
+	public static final field INSTANCE Lkt/fluxo/core/factory/FluxoStoreFactory;
+	public fun create (Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;)Lkt/fluxo/core/StoreSE;
 }
 
-public abstract class kt/fluxo/core/intercept/FluxoEvent {
-	public synthetic fun <init> (Lkt/fluxo/core/Store;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getStore ()Lkt/fluxo/core/Store;
+public abstract interface class kt/fluxo/core/factory/StoreDecorator : kt/fluxo/core/dsl/StoreScope {
+	public abstract fun onBootstrap (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onClose (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun onClose$suspendImpl (Lkt/fluxo/core/factory/StoreDecorator;Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onIntent (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onSideJob (Ljava/lang/String;ZLkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onStart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun onStart$suspendImpl (Lkt/fluxo/core/factory/StoreDecorator;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onStateChanged (Ljava/lang/Object;)V
+	public fun onUndeliveredIntent (Ljava/lang/Object;Z)V
+	public fun onUndeliveredSideEffect (Ljava/lang/Object;Z)V
+	public fun onUnhandledError (Ljava/lang/Throwable;)Z
 }
 
-public final class kt/fluxo/core/intercept/FluxoEvent$BootstrapperCancelled : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Lkotlin/jvm/functions/Function2;)V
-	public final fun getBootstrapper ()Lkotlin/jvm/functions/Function2;
-	public fun toString ()Ljava/lang/String;
+public abstract class kt/fluxo/core/factory/StoreDecoratorBase : kt/fluxo/core/factory/StoreDecorator {
+	public fun <init> (Lkt/fluxo/core/factory/StoreDecorator;)V
+	public synthetic fun async (Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
+	public fun close ()V
+	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun emit (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCoroutineContext ()Lkotlin/coroutines/CoroutineContext;
+	public fun getName ()Ljava/lang/String;
+	public fun getReplayCache ()Ljava/util/List;
+	public fun getSideEffectFlow ()Lkotlinx/coroutines/flow/Flow;
+	public synthetic fun getState ()Ljava/lang/Object;
+	public synthetic fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSubscriptionCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getValue ()Ljava/lang/Object;
+	public synthetic fun launch (Lkotlin/coroutines/CoroutineContext;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
+	public fun noOp ()V
+	public fun onBootstrap (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onClose (Ljava/lang/Throwable;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onIntent (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onSideJob (Ljava/lang/String;ZLkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onStart (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onStateChanged (Ljava/lang/Object;)V
+	public fun onUndeliveredIntent (Ljava/lang/Object;Z)V
+	public fun onUndeliveredSideEffect (Ljava/lang/Object;Z)V
+	public fun onUnhandledError (Ljava/lang/Throwable;)Z
+	public synthetic fun postIntent (Ljava/lang/Object;)Lkotlinx/coroutines/Job;
+	public fun postSideEffect (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun reduce (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun send (Ljava/lang/Object;)Lkotlinx/coroutines/Job;
+	public fun setValue (Ljava/lang/Object;)V
+	public fun sideJob (Ljava/lang/String;Lkotlin/coroutines/CoroutineContext;Lkotlinx/coroutines/CoroutineStart;Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun start ()Lkotlinx/coroutines/Job;
+	public fun updateState (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class kt/fluxo/core/intercept/FluxoEvent$BootstrapperCompleted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Lkotlin/jvm/functions/Function2;)V
-	public final fun getBootstrapper ()Lkotlin/jvm/functions/Function2;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$BootstrapperError : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Lkotlin/jvm/functions/Function2;Ljava/lang/Throwable;)V
-	public final fun getBootstrapper ()Lkotlin/jvm/functions/Function2;
-	public final fun getE ()Ljava/lang/Throwable;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$BootstrapperStarted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Lkotlin/jvm/functions/Function2;)V
-	public final fun getBootstrapper ()Lkotlin/jvm/functions/Function2;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentAccepted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentCancelled : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentError : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;Ljava/lang/Throwable;)V
-	public final fun getE ()Ljava/lang/Throwable;
-	public final fun getIntent ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentHandled : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentQueued : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentRejected : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;Ljava/lang/Object;)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public final fun getStateWhenRejected ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$IntentUndelivered : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;Z)V
-	public final fun getIntent ()Ljava/lang/Object;
-	public final fun getResent ()Z
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideEffectEmitted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getSideEffect ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideEffectUndelivered : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;Z)V
-	public final fun getResent ()Z
-	public final fun getSideEffect ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideJobCancelled : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/String;Lkt/fluxo/core/dsl/SideJobScope$RestartState;)V
-	public final fun getKey ()Ljava/lang/String;
-	public final fun getRestartState ()Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideJobCompleted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/String;Lkt/fluxo/core/dsl/SideJobScope$RestartState;)V
-	public final fun getKey ()Ljava/lang/String;
-	public final fun getRestartState ()Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideJobError : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/String;Lkt/fluxo/core/dsl/SideJobScope$RestartState;Ljava/lang/Throwable;)V
-	public final fun getE ()Ljava/lang/Throwable;
-	public final fun getKey ()Ljava/lang/String;
-	public final fun getRestartState ()Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideJobQueued : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/String;)V
-	public final fun getKey ()Ljava/lang/String;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$SideJobStarted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/String;Lkt/fluxo/core/dsl/SideJobScope$RestartState;)V
-	public final fun getKey ()Ljava/lang/String;
-	public final fun getRestartState ()Lkt/fluxo/core/dsl/SideJobScope$RestartState;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$StateChanged : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Object;)V
-	public final fun getState ()Ljava/lang/Object;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$StoreClosed : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Throwable;)V
-	public final fun getCause ()Ljava/lang/Throwable;
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$StoreStarted : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;)V
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class kt/fluxo/core/intercept/FluxoEvent$UnhandledError : kt/fluxo/core/intercept/FluxoEvent {
-	public fun <init> (Lkt/fluxo/core/Store;Ljava/lang/Throwable;)V
-	public final fun getE ()Ljava/lang/Throwable;
-	public fun toString ()Ljava/lang/String;
+public abstract interface class kt/fluxo/core/factory/StoreFactory {
+	public fun create (Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;)Lkt/fluxo/core/Store;
+	public abstract fun create (Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;)Lkt/fluxo/core/StoreSE;
+	public static synthetic fun create$default (Lkt/fluxo/core/factory/StoreFactory;Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;ILjava/lang/Object;)Lkt/fluxo/core/Store;
+	public static synthetic fun create$default (Lkt/fluxo/core/factory/StoreFactory;Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;ILjava/lang/Object;)Lkt/fluxo/core/StoreSE;
 }
 
 public abstract interface class kt/fluxo/core/intercept/StoreRequest {
@@ -357,31 +234,10 @@ public final class kt/fluxo/core/intercept/StoreRequest$HandleIntent : kt/fluxo/
 	public final fun getIntent ()Ljava/lang/Object;
 }
 
-public final class kt/fluxo/core/intercept/StoreRequest$RestoreState : kt/fluxo/core/intercept/StoreRequest {
-	public fun <init> (Ljava/lang/Object;Lkotlinx/coroutines/CompletableDeferred;)V
-	public synthetic fun <init> (Ljava/lang/Object;Lkotlinx/coroutines/CompletableDeferred;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun getDeferred ()Lkotlinx/coroutines/CompletableDeferred;
-	public final fun getState ()Ljava/lang/Object;
-}
-
 public final class kt/fluxo/core/internal/FluxoIntentHandler : kt/fluxo/core/IntentHandler {
 	public static final field INSTANCE Lkt/fluxo/core/internal/FluxoIntentHandler;
 	public synthetic fun handleIntent (Lkt/fluxo/core/dsl/StoreScope;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun handleIntent (Lkt/fluxo/core/dsl/StoreScope;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class kt/fluxo/core/internal/FluxoStore : kt/fluxo/core/Store {
-	public fun <init> (Ljava/lang/Object;Lkt/fluxo/core/IntentHandler;Lkt/fluxo/core/FluxoSettings;)V
-	public fun close ()V
-	public fun getEventsFlow ()Lkotlinx/coroutines/flow/Flow;
-	public fun getName ()Ljava/lang/String;
-	public fun getSideEffectFlow ()Lkotlinx/coroutines/flow/Flow;
-	public fun getStateFlow ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun isActive ()Z
-	public fun send (Ljava/lang/Object;)V
-	public fun sendAsync (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun start ()Lkotlinx/coroutines/Job;
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class kt/fluxo/core/internal/ReducerIntentHandler : kt/fluxo/core/IntentHandler {
