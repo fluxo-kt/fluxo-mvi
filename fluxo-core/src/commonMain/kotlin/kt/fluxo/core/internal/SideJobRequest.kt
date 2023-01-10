@@ -6,7 +6,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.jvm.JvmField
 
-internal class SideJobRequest<out Intent, State, out SideEffect : Any>(
+internal class SideJobRequest<out Intent, State, SideEffect : Any>(
     @JvmField val key: String,
     @JvmField val parent: Any?,
     @JvmField val context: CoroutineContext = EmptyCoroutineContext,

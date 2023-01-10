@@ -38,6 +38,7 @@ import kt.fluxo.core.FluxoClosedException
 import kt.fluxo.core.FluxoSettings
 import kt.fluxo.core.IntentHandler
 import kt.fluxo.core.SideEffectsStrategy
+import kt.fluxo.core.SideJob
 import kt.fluxo.core.annotation.InternalFluxoApi
 import kt.fluxo.core.data.GuaranteedEffect
 import kt.fluxo.core.debug.DEBUG
@@ -102,23 +103,24 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             else -> CoroutineName(toString())
         }
 
-        val parent = ctx[Job]
-        val job = if (closeOnExceptions) Job(parent) else SupervisorJob(parent)
+        val job = ctx[Job].let { if (closeOnExceptions) Job(it) else SupervisorJob(it) }
         job.invokeOnCompletion(::onShutdown)
 
         val parentExceptionHandler = conf.exceptionHandler ?: ctx[CoroutineExceptionHandler]
         val exceptionHandler = CoroutineExceptionHandler { context, e ->
-            parentExceptionHandler?.handleException(context, e)
-            if (closeOnExceptions) {
-                try {
-                    val ce = CancellationException("Uncaught exception: $e", e)
-                    @Suppress("UNINITIALIZED_VARIABLE")
-                    this@FluxoStore.coroutineContext.cancel(ce)
+            try {
+                val ce = e.toCancellationException()
+                if (closeOnExceptions) {
                     context.cancel(ce)
-                } catch (e2: Throwable) {
-                    e2.addSuppressed(e)
-                    throw e2
+                    @Suppress("UNINITIALIZED_VARIABLE")
+                    coroutineContext.cancel(ce)
+                } else {
+                    parentExceptionHandler?.handleException(context, e)
                 }
+                onUnhandledError(ce?.cause ?: e)
+            } catch (e2: Throwable) {
+                e2.addSuppressed(e)
+                throw e2
             }
         }
         coroutineContext = ctx + exceptionHandler + job
@@ -144,28 +146,27 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // — channel cancelled, in which case onUndeliveredElement called on every remaining element in the channel's buffer.
         val intentResendLock = if (inputStrategy.resendUndelivered) Mutex() else null
         requestsChannel = inputStrategy.createQueue {
-            scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                when (it) {
-                    is StoreRequest.HandleIntent -> {
-                        // We don't want to fall into the recursion, so only one resending per moment.
-                        var resent = false
-                        if (isActive && intentResendLock != null && intentResendLock.tryLock()) {
-                            try {
-                                @Suppress("UNINITIALIZED_VARIABLE")
-                                resent = requestsChannel.trySend(it).isSuccess
-                            } catch (_: Throwable) {
-                            } finally {
-                                intentResendLock.unlock()
-                            }
-                        }
-                        if (!resent) {
-                            it.intent.closeSafely()
-                            it.deferred.cancel()
+            when (it) {
+                is StoreRequest.HandleIntent -> {
+                    // We don't want to fall into the recursion, so only one resending per moment.
+                    var resent = false
+                    if (isActive && intentResendLock != null && intentResendLock.tryLock()) {
+                        try {
+                            @Suppress("UNINITIALIZED_VARIABLE")
+                            resent = requestsChannel.trySend(it).isSuccess
+                        } catch (_: Throwable) {
+                        } finally {
+                            intentResendLock.unlock()
                         }
                     }
-
-                    is StoreRequest.RestoreState -> updateState(it)
+                    if (!resent) {
+                        it.intent.closeSafely()
+                        it.deferred.cancel()
+                    }
+                    onUndeliveredIntent(it.intent, resent)
                 }
+
+                is StoreRequest.RestoreState -> updateState(it)
             }
         }
 
@@ -205,6 +206,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 if (!resent) {
                     it.closeSafely()
                 }
+                onUndeliveredSideEffect(it, resent)
             }
             sideEffectChannel = channel
             sideEffectsSubscriptionCount = MutableStateFlow(0)
@@ -312,6 +314,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
                 if (prevValue != nextValue) {
                     prevValue.closeSafely()
                 }
+                onStateChanged(nextValue)
                 return nextValue
             }
             if (!isActive) {
@@ -345,6 +348,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             postSideEffect(sideEffect)
         }
     }
+
 
     private fun handleException(e: Throwable, context: CoroutineContext) {
         if (!closeOnExceptions) {
@@ -458,6 +462,15 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             }
         }
         guardedScope?.close()
+    }
+
+    override suspend fun sideJob(
+        key: String,
+        context: CoroutineContext,
+        start: CoroutineStart,
+        block: SideJob<Intent, State, SideEffect>
+    ): Job {
+
     }
 
     private suspend fun postSideJob(request: SideJobRequest<Intent, State, SideEffect>) {

@@ -21,12 +21,14 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
     public suspend fun onBootstrap(bootstrapper: Bootstrapper<Intent, State, SideEffect>)
 
     @CallSuper
-    public suspend fun onStart() {}
+    public suspend fun onStart() {
+    }
 
 
     @CallSuper
     @JsName("onStateChanged")
-    public suspend fun onStateChanged(state: State)
+    public fun onStateChanged(state: State) {
+    }
 
 
     @CallSuper
@@ -40,16 +42,19 @@ public interface StoreDecorator<in Intent, State, SideEffect : Any> : StoreScope
 
     @CallSuper
     @JsName("onUndeliveredIntent")
-    public suspend fun onUndeliveredIntent(intent: Intent)
+    public fun onUndeliveredIntent(intent: Intent, wasResent: Boolean) {
+    }
 
     @CallSuper
     @JsName("onUndeliveredSideEffect")
-    public suspend fun onUndeliveredSideEffect(sideEffect: SideEffect)
+    public fun onUndeliveredSideEffect(sideEffect: SideEffect, wasResent: Boolean) {
+    }
 
 
     @CallSuper
     @JsName("onUnhandledError")
-    public fun onUnhandledError(error: Throwable)
+    public fun onUnhandledError(error: Throwable) {
+    }
 
     @CallSuper
     @JsName("onClose")
@@ -66,13 +71,13 @@ public inline fun <I, S, SE : Any> StoreDecorator(
     crossinline allowBootstrap: suspend Sc<I, S, SE>.(Bootstrapper<I, S, SE>) -> Boolean = { true },
     crossinline onStarted: suspend Sc<I, S, SE>.() -> Unit = {},
 
-    crossinline onStateChange: suspend Sc<I, S, SE>.(state: S) -> Unit = {},
+    crossinline onStateChange: Sc<I, S, SE>.(state: S) -> Unit = {},
 
     crossinline allowIntent: suspend Sc<I, S, SE>.(intent: I) -> Boolean = { true },
     crossinline allowSideJob: suspend Sc<I, S, SE>.(key: String, RestartState, SideJob<I, S, SE>) -> Boolean = { _, _, _ -> true },
 
-    crossinline onIntentUndelivered: Sc<I, S, SE>.(intent: I) -> Unit = {},
-    crossinline onSideEffectUndelivered: Sc<I, S, SE>.(sideEffect: SE) -> Unit = {},
+    crossinline onIntentUndelivered: Sc<I, S, SE>.(intent: I, wasResent: Boolean) -> Unit = { _, _ -> },
+    crossinline onSideEffectUndelivered: Sc<I, S, SE>.(sideEffect: SE, wasResent: Boolean) -> Unit = { _, _ -> },
 
     crossinline onError: Sc<I, S, SE>.(error: Throwable) -> Unit = {},
     crossinline onClosed: suspend Sc<I, S, SE>.(cause: Throwable?) -> Unit = {},
@@ -91,7 +96,7 @@ public inline fun <I, S, SE : Any> StoreDecorator(
         }
 
 
-        override suspend fun onStateChanged(state: S) {
+        override fun onStateChanged(state: S) {
             super.onStateChanged(state)
             onStateChange(state)
         }
@@ -110,14 +115,14 @@ public inline fun <I, S, SE : Any> StoreDecorator(
         }
 
 
-        override suspend fun onUndeliveredIntent(intent: I) {
-            super.onUndeliveredIntent(intent)
-            onIntentUndelivered(intent)
+        override fun onUndeliveredIntent(intent: I, wasResent: Boolean) {
+            super.onUndeliveredIntent(intent, wasResent)
+            onIntentUndelivered(intent, wasResent)
         }
 
-        override suspend fun onUndeliveredSideEffect(sideEffect: SE) {
-            super.onUndeliveredSideEffect(sideEffect)
-            onSideEffectUndelivered(sideEffect)
+        override fun onUndeliveredSideEffect(sideEffect: SE, wasResent: Boolean) {
+            super.onUndeliveredSideEffect(sideEffect, wasResent)
+            onSideEffectUndelivered(sideEffect, wasResent)
         }
 
 

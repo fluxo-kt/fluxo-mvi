@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 internal fun Throwable?.toCancellationException() = when (this) {
     null -> null
     is CancellationException -> this
-    else -> CancellationException("", cause = this)
+    else -> CancellationException("Exception: $this", cause = this)
 }
 
 

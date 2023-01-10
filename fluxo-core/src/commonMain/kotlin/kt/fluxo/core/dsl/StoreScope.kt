@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kt.fluxo.core.IntentHandler
 import kt.fluxo.core.SideJob
 import kt.fluxo.core.Store
+import kt.fluxo.core.StoreSE
 import kt.fluxo.core.annotation.CallSuper
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kt.fluxo.core.internal.SideJobRequest.Companion.DEFAULT_SIDE_JOB
@@ -21,7 +22,7 @@ import kotlin.js.JsName
  * Mutable [Store] scope for handlers, decorators and
  */
 @ExperimentalFluxoApi
-public interface StoreScope<in Intent, State, SideEffect : Any> : Store<Intent, State, SideEffect> {
+public interface StoreScope<in Intent, State, SideEffect : Any> : StoreSE<Intent, State, SideEffect> {
 
     override var value: State
 

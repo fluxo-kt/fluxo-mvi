@@ -5,7 +5,6 @@ package kt.fluxo.core
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.StateFlow
 import kt.fluxo.core.annotation.CallSuper
@@ -14,23 +13,6 @@ import kt.fluxo.core.annotation.ThreadSafe
 import kt.fluxo.core.internal.Closeable
 import kotlin.internal.InlineOnly
 import kotlin.js.JsName
-
-
-/**
- * Convenience typealias for an MVVM+ Fluxo [Store] setup.
- */
-public typealias Container<State, SideEffect> = Store<FluxoIntent<State, SideEffect>, State, SideEffect>
-
-/**
- * Convenience typealias for an MVVM+ Fluxo [Container] setup with side effects disabled.
- */
-public typealias ContainerS<State> = Container<State, Nothing>
-
-/**
- * Convenience typealias for a Fluxo [Store] setup with side effects disabled.
- */
-public typealias StoreS<Intent, State> = Store<Intent, State, Nothing>
-
 
 /**
  * The core of the Fluxo MVI. Represents a state store with its input and outputs.
@@ -43,30 +25,18 @@ public typealias StoreS<Intent, State> = Store<Intent, State, Nothing>
  *
  * @param Intent Intent type for this [Store]. See [Container] for MVVM+ [Store].
  * @param State State type for this [Store].
- * @param SideEffect Side effects type posted by this container. Can be [Nothing] if this
- * container never posts side effects.
+ *
+ * @see StoreSE for the state store with side effects
+ * @see Container for the state store with side effects
  */
 @ThreadSafe
 @SubclassOptInRequired(ExperimentalFluxoApi::class)
-public interface Store<in Intent, out State, out SideEffect : Any> : StateFlow<State>, FlowCollector<Intent>, CoroutineScope, Closeable {
+public interface Store<in Intent, out State> : StateFlow<State>, FlowCollector<Intent>, CoroutineScope, Closeable {
 
     /**
      * [Store] name. Auto-generated or specified via [FluxoSettings.name].
      */
     public val name: String
-
-
-    /**
-     * A _hot_ [Flow] that shares emitted [SideEffect]s among its collectors.
-     *
-     * Behavior of this flow can be configured with [FluxoSettings.sideEffectsStrategy].
-     *
-     * @see FluxoSettings.sideEffectsStrategy
-     * @see SideEffectsStrategy
-     *
-     * @throws IllegalStateException if [SideEffect]s where disabled for this [Store].
-     */
-    public val sideEffectFlow: Flow<SideEffect>
 
 
     /**
