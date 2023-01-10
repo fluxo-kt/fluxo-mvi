@@ -196,7 +196,7 @@ deps-analysis = { id = "com.autonomousapps.dependency-analysis", version = "1.18
 
 # 'taskTree' task that prints task dependency tree
 # https://github.com/dorongold/gradle-task-tree
-task-tree = { id = "com.dorongold.task-tree", version = "2.1.0" }
+task-tree = { id = "com.dorongold.task-tree", version = "2.1.1" }
 
 # JMH benchmarking for Gradle
 # https://github.com/melix/jmh-gradle-plugin/releases
