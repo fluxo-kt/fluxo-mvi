@@ -11,10 +11,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kt.fluxo.core.FluxoIntent
 import kt.fluxo.core.FluxoRuntimeException
-import kt.fluxo.core.InputStrategy
-import kt.fluxo.core.InputStrategy.InBox.Fifo
-import kt.fluxo.core.InputStrategy.InBox.Lifo
-import kt.fluxo.core.InputStrategy.InBox.Parallel
+import kt.fluxo.core.input.InputStrategyLegacy
+import kt.fluxo.core.input.InputStrategyLegacy.InBox.Fifo
+import kt.fluxo.core.input.InputStrategyLegacy.InBox.Lifo
+import kt.fluxo.core.input.InputStrategyLegacy.InBox.Parallel
 import kt.fluxo.core.closeAndWait
 import kt.fluxo.core.container
 import kt.fluxo.core.dsl.InputStrategyScope
@@ -38,7 +38,7 @@ internal class InputStrategyTest : CoroutineScopeAwareTest() {
     }
 
     private suspend fun CoroutineScope.input_strategy_test(
-        strategy: InputStrategy,
+        strategy: InputStrategyLegacy,
         equal: Boolean,
         generic: Boolean = false,
     ): List<Int> {
@@ -139,7 +139,7 @@ internal class InputStrategyTest : CoroutineScopeAwareTest() {
     }
 
     /** Useless strategy, just for testing */
-    private class CustomInputStrategy : InputStrategy() {
+    private class CustomInputStrategy : InputStrategyLegacy() {
         override fun <Request> createQueue(onUndeliveredElement: ((Request) -> Unit)?): Channel<Request> =
             Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST, onUndeliveredElement = onUndeliveredElement)
 

@@ -55,8 +55,8 @@ public sealed interface SideEffectsStrategy {
     public class SHARE(public val replay: Int = 0) : SideEffectsStrategy
 
     /**
-     * Side effects completely disabled.
-     * Saves a bit of app memory and sometimes your brain cells.
+     * Side effects are completely disabled.
+     * Saves a bit of app memory and sometimes your brain cells (as it can be a more pure way to use only state+intent).
      */
     public object DISABLE : SideEffectsStrategy
 }

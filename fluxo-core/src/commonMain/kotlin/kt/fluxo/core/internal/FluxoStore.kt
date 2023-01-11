@@ -44,9 +44,8 @@ import kt.fluxo.core.annotation.InternalFluxoApi
 import kt.fluxo.core.data.GuaranteedEffect
 import kt.fluxo.core.debug.DEBUG
 import kt.fluxo.core.debug.debugIntentWrapper
-import kt.fluxo.core.dsl.InputStrategyScope
 import kt.fluxo.core.factory.StoreDecorator
-import kt.fluxo.core.intercept.StoreRequest.HandleIntent
+import kt.fluxo.core.input.InputStrategyHandler
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -55,7 +54,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
     initialState: State,
     private val intentHandler: IntentHandler<Intent, State, SideEffect>,
     conf: FluxoSettings<Intent, State, SideEffect>,
-) : StoreDecorator<Intent, State, SideEffect> {
+) : StoreDecorator<Intent, State, SideEffect>, InputStrategyHandler<Intent> {
 
     private companion object {
         private const val F = "Fluxo"
@@ -66,9 +65,6 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
 
     // TODO: Generate name from Store host with reflection in debug mode?
     override val name: String = conf.name ?: "store#${storeNumber.getAndIncrement()}"
-
-    @Deprecated("For migration")
-    private val requestsChannel: Channel<HandleIntent<Intent, State>>
 
     private val sideJobScope: CoroutineScope
     private val sideJobsMap = ConcurrentHashMap<String, RunningSideJob>()
@@ -146,8 +142,8 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // — channel cancelled, in which case onUndeliveredElement called on every remaining element in the channel's buffer.
         val intentResendLock = if (inputStrategy.resendUndelivered) Mutex() else null
         requestsChannel = inputStrategy.createQueue {
-            // We don't want to fall into the recursion, so only one resending per moment.
             var resent = false
+            // We don't want to fall into the recursion, so only one resending per moment.
             if (isActive && intentResendLock?.tryLock() == true) {
                 try {
                     @Suppress("UNINITIALIZED_VARIABLE")
@@ -184,10 +180,18 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             sideEffectsSubscriptionCount = flow.subscriptionCount
             sideEffectFlowField = flow
         } else {
+            // Leak-free transfer via channel
+            // https://github.com/Kotlin/kotlinx.coroutines/issues/1936
+            // See "Undelivered elements" section in Channel documentation for details.
+            //
+            // Handled cases:
+            // — sending operation cancelled before it had a chance to actually send the element.
+            // — receiving operation retrieved the element from the channel cancelled when trying to return it the caller.
+            // — channel cancelled, in which case onUndeliveredElement called on every remaining element in the channel's buffer.
             val seResendLock = Mutex()
             val channel = Channel<SideEffect>(conf.sideEffectBufferSize, BufferOverflow.SUSPEND) {
-                // We don't want to fall into the recursion, so only one resending per moment.
                 var resent = false
+                // We don't want to fall into the recursion, so only one resending per moment.
                 if (isActive && seResendLock.tryLock()) {
                     try {
                         @Suppress("UNINITIALIZED_VARIABLE")
@@ -259,7 +263,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
 
     private suspend fun send(intent: Intent, deferred: CompletableDeferred<Unit>?): Job {
         val d = deferred ?: CompletableDeferred()
-        requestsChannel.send(HandleIntent(intent, d))
+        requestsChannel.send(IntentRequest(intent, d))
         return d
     }
 
@@ -368,7 +372,7 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // observe and process intents
         val requestsFlow = requestsChannel.receiveAsFlow()
         val inputStrategy = inputStrategy
-        val inputStrategyScope: InputStrategyScope<HandleIntent<Intent, State>> = { request ->
+        val inputStrategyScope: InputStrategyScope<IntentRequest<Intent>> = { request ->
             if (debugChecks) {
                 withContext(CoroutineName("$F[$name <= Intent ${request.intent}]")) {
                     safelyHandleIntent(request.intent, request.deferred)
@@ -393,6 +397,11 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         }
 
         onStart()
+    }
+
+
+    override suspend fun executeInput(request: Intent) {
+        // FIXME: Not implemented"
     }
 
     private suspend fun safelyHandleIntent(intent: Intent, deferred: CompletableDeferred<Unit>?) {
@@ -442,6 +451,13 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
             }
         }
         guardedScope?.close()
+    }
+
+    override fun onUndeliveredIntent(intent: Intent, wasResent: Boolean) {
+        if (!wasResent) {
+            intent.closeSafely()
+            it.deferred.cancel()  // FIXME: Should cancel deferred/job here
+        }
     }
 
     override suspend fun sideJob(
@@ -540,6 +556,8 @@ internal class FluxoStore<Intent, State, SideEffect : Any>(
         // Cancel and clear sideJobs
         sideJobsMap.values.forEach { it.job?.cancel(cancellation) }
         sideJobsMap.clear()
+
+        requestsChannel.closeSafely()
 
         // Close and clear state & side effects machinery.
         value.closeSafely(cause)

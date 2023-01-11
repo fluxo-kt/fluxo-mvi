@@ -218,7 +218,7 @@ public inline fun <Intent, State, SideEffect : Any> store(
         initialState = initialState,
         handler = handler,
         // Always do a copy as we don't want to modify original settings.
-        settings = (settings ?: fluxoSettings()).copy().apply(setup),
+        settings = (settings?.copy() ?: FluxoSettings()).apply(setup),
     )
 }
 
@@ -240,20 +240,5 @@ public inline fun <S, SE : Any> ContainerHost<S, SE>.intent(noinline intent: Flu
 @FluxoDsl
 @InlineOnly
 public inline fun <S, SE : Any> Container<S, SE>.intent(noinline intent: FluxoIntent<S, SE>): Job = send(intent)
-
-// endregion
-
-
-// region Utils
-
-/**
- * This function helps to avoid unnecessary additional copy of the [FluxoSettings].
- */
-@InlineOnly
-@PublishedApi
-internal inline fun <Intent, State, SideEffect : Any> fluxoSettings(): FluxoSettings<Intent, State, SideEffect> {
-    @Suppress("UNCHECKED_CAST")
-    return FluxoSettings.DEFAULT as FluxoSettings<Intent, State, SideEffect>
-}
 
 // endregion

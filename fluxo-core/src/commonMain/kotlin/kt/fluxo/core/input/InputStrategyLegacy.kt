@@ -1,21 +1,21 @@
-package kt.fluxo.core
+package kt.fluxo.core.input
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kt.fluxo.core.dsl.InputStrategyScope
-import kt.fluxo.core.strategy.FifoInputStrategy
-import kt.fluxo.core.strategy.LifoInputStrategy
-import kt.fluxo.core.strategy.ParallelInputStrategy
+import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kotlin.js.JsName
 import kotlin.jvm.JvmName
 import kotlin.native.ObjCName
 
-public abstract class InputStrategy {
+@ExperimentalFluxoApi
+public abstract class InputStrategyLegacy {
 
     /**
      *
      * @param onUndeliveredElement See "Undelivered elements" section in [Channel] documentation for details.
+     *
+     * @see kotlinx.coroutines.channels.Channel
      */
     @JsName("createQueue")
     public open fun <Request> createQueue(onUndeliveredElement: ((Request) -> Unit)?): Channel<Request> {
@@ -48,7 +48,7 @@ public abstract class InputStrategy {
         @JsName("Fifo")
         @ObjCName("Fifo")
         @get:JvmName("Fifo")
-        public val Fifo: InputStrategy get() = FifoInputStrategy
+        public val Fifo: InputStrategyLegacy get() = FifoInputStrategyLegacy
 
         /**
          * `Last-in, first-out` - strategy optimized for lots of events (e.g. user actions).
@@ -61,7 +61,7 @@ public abstract class InputStrategy {
         @JsName("Lifo")
         @ObjCName("Lifo")
         @get:JvmName("Lifo")
-        public val Lifo: InputStrategy get() = LifoInputStrategy
+        public val Lifo: InputStrategyLegacy get() = LifoInputStrategyLegacy
 
         /**
          * Parallel processing of all intents, can provide better responsiveness comparing to [Fifo].
@@ -71,6 +71,6 @@ public abstract class InputStrategy {
         @JsName("Parallel")
         @ObjCName("Parallel")
         @get:JvmName("Parallel")
-        public val Parallel: InputStrategy get() = ParallelInputStrategy
+        public val Parallel: InputStrategyLegacy get() = ParallelInputStrategyLegacy
     }
 }

@@ -14,6 +14,7 @@ import kt.fluxo.core.annotation.NotThreadSafe
 import kt.fluxo.core.debug.DEBUG
 import kt.fluxo.core.internal.InputStrategyGuardian
 import kt.fluxo.core.internal.RunningSideJob.Companion.BOOTSTRAPPER_SIDE_JOB
+import kt.fluxo.core.input.InputStrategyLegacy
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.internal.InlineOnly
@@ -127,7 +128,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
      * [Fifo], [Lifo], and [Parallel] strategies available out of the box.
      * Or you can create your own if you need.
      */
-    public var inputStrategy: InputStrategy = Fifo
+    public var inputStrategy: InputStrategyLegacy = Fifo
 
     /**
      * A strategy to be applied when sharing side effects.
@@ -208,7 +209,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     @JsName("Fifo")
     @ObjCName("Fifo")
     @get:JvmName("Fifo")
-    public inline val Fifo: InputStrategy get() = InputStrategy.Fifo
+    public inline val Fifo: InputStrategyLegacy get() = InputStrategyLegacy.Fifo
 
     /**
      * `Last-in, first-out` - strategy optimized for lots of events (e.g. user actions).
@@ -222,7 +223,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     @JsName("Lifo")
     @ObjCName("Lifo")
     @get:JvmName("Lifo")
-    public inline val Lifo: InputStrategy get() = InputStrategy.Lifo
+    public inline val Lifo: InputStrategyLegacy get() = InputStrategyLegacy.Lifo
 
     /**
      * Parallel processing of all intents, can provide better responsiveness comparing to [Fifo].
@@ -233,7 +234,7 @@ public class FluxoSettings<Intent, State, SideEffect : Any> private constructor(
     @JsName("Parallel")
     @ObjCName("Parallel")
     @get:JvmName("Parallel")
-    public inline val Parallel: InputStrategy get() = InputStrategy.Parallel
+    public inline val Parallel: InputStrategyLegacy get() = InputStrategyLegacy.Parallel
 
     // endregion
 

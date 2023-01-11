@@ -3,8 +3,8 @@ package kt.fluxo.tests
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kt.fluxo.core.FluxoSettings
-import kt.fluxo.core.InputStrategy.InBox.Fifo
-import kt.fluxo.core.InputStrategy.InBox.Lifo
+import kt.fluxo.core.input.InputStrategyLegacy.InBox.Fifo
+import kt.fluxo.core.input.InputStrategyLegacy.InBox.Lifo
 import kt.fluxo.core.SideEffectsStrategy
 import kt.fluxo.core.container
 import kt.fluxo.core.debug.DEBUG

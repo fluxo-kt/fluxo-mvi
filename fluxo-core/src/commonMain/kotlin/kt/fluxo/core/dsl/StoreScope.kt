@@ -38,16 +38,30 @@ public interface StoreScope<in Intent, State, SideEffect : Any> : StoreSE<Intent
     @JsName("updateState")
     public suspend fun updateState(function: (prevState: State) -> State): State
 
+    /**
+     * Dispatch a [sideEffect] through the [sideEffectFlow].
+     *
+     * @throws IllegalStateException if [sideEffect]s are disabled for this [Store]
+     */
     @CallSuper
     @JsName("postSideEffect")
     public suspend fun postSideEffect(sideEffect: SideEffect)
 
     /**
+     * Do something other than [update the state][updateState] or [dispatch an effect][postSideEffect]. This is moving
+     * outside the normal MVI workflow, so make sure you know what you're doing with this, and try to make sure it can be undone.
+     *
+     * For example, when deleting a record from the DB, do a soft delete so that it can be restored later, if needed.
+     *
+     * [Side-jobs][block] may safely be restarted; already-running side-jobs at the same [key] will be cancelled when starting
+     * the new side-job. If a single [Store] is starting multiple side-jobs (likely from different inputs), they should each be
+     * given a unique [key] within the VM to ensure they do not accidentally cancel each other.
      *
      * @see kotlinx.coroutines.launch
      */
     @CallSuper
     @JsName("sideJob")
+    // FIXME: More options for a side job restarting or start-avoidance. SideJobs registry/management API
     public suspend fun sideJob(
         key: String = DEFAULT_SIDE_JOB,
         context: CoroutineContext = EmptyCoroutineContext,

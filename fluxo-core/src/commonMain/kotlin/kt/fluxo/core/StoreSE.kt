@@ -28,6 +28,7 @@ public typealias ContainerS<State> = Container<State, Nothing>
  * @param SideEffect Side effects type posted by this container. Can be [Nothing] if this
  * container never posts side effects.
  */
+// @SubclassOptInRequired(ExperimentalFluxoApi::class) // TODO: Kotlin API version 1.8
 public interface StoreSE<in Intent, out State, out SideEffect : Any> : Store<Intent, State> {
 
     /**

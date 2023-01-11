@@ -6,7 +6,6 @@ import kt.fluxo.core.Store
 import kt.fluxo.core.StoreSE
 import kt.fluxo.core.annotation.ExperimentalFluxoApi
 import kt.fluxo.core.annotation.ThreadSafe
-import kt.fluxo.core.fluxoSettings
 import kotlin.js.JsName
 
 /**
@@ -26,7 +25,7 @@ public interface StoreFactory {
     public fun <Intent, State, SideEffect : Any> create(
         initialState: State,
         @BuilderInference handler: IntentHandler<Intent, State, SideEffect>,
-        settings: FluxoSettings<Intent, State, SideEffect> = fluxoSettings(),
+        settings: FluxoSettings<Intent, State, SideEffect> = FluxoSettings(),
     ): StoreSE<Intent, State, SideEffect>
 
     /**
@@ -36,7 +35,7 @@ public interface StoreFactory {
     public fun <Intent, State> create(
         initialState: State,
         @BuilderInference handler: IntentHandler<Intent, State, Nothing>,
-        settings: FluxoSettings<Intent, State, Nothing> = fluxoSettings(),
+        settings: FluxoSettings<Intent, State, Nothing> = FluxoSettings(),
     ): Store<Intent, State> {
         return create<Intent, State, Nothing>(initialState, handler, settings)
     }
